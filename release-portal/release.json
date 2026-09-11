@@ -1,8 +1,8 @@
 {
-  "version": null,
+  "version": "ANONYMIKECONNECTV1.0",
   "file": "ANONYMIKECONNECTV1.0.exe",
-  "url": "",
-  "sha256": "",
-  "size": 0,
-  "notes": "No release published yet. The release workflow publishes a build, then updates this file automatically."
+  "url": "https://github.com/anonymikey/ANONYMIKECONNECT-Hotspot/releases/download/v1.0/ANONYMIKECONNECTV1.0.exe",
+  "sha256": "124133a66855330860922a6fd072014c04e65eb5cbd1be408897e65a60c53c81",
+  "size": 23255211,
+  "notes": "Windows build published by CI (ANONYMIKECONNECTV1.0)."
 }
