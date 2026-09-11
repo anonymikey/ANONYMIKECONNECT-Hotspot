@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import io
 import threading
 import tkinter as tk
 from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
+from urllib.request import urlopen
 
 import customtkinter as ctk
 import qrcode
@@ -27,6 +29,7 @@ ACCENT = "#1999e7"
 ACCENT_SOFT = "#49b4f4"
 MUTED = "#8ba8b8"
 SUCCESS = "#8bd348"
+BRAND_LOGO_URL = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Sep%2011%2C%202026%2C%2001_08_15%20PM-h1DWAiZ5E3Y4SMk3A2I7AdYEu0dclb.png"
 
 
 class AnonymikeConnectApp(ctk.CTk):
@@ -52,19 +55,33 @@ class AnonymikeConnectApp(ctk.CTk):
         self._refresh_vouchers()
         self._refresh_clients()
 
+    def _load_brand_image(self) -> ctk.CTkImage | None:
+        try:
+            with urlopen(BRAND_LOGO_URL, timeout=2) as response:
+                image = Image.open(io.BytesIO(response.read())).convert("RGBA")
+            return ctk.CTkImage(light_image=image, dark_image=image, size=(170, 82))
+        except Exception:
+            return None
+
     def _build_sidebar(self) -> None:
         sidebar = ctk.CTkFrame(self, width=218, corner_radius=0, fg_color="#08263a")
         sidebar.grid(row=0, column=0, sticky="nsew")
         sidebar.grid_propagate(False)
         sidebar.grid_rowconfigure(7, weight=1)
 
-        ctk.CTkLabel(
-            sidebar,
-            text="ANONYMIKE\nCONNECT",
-            justify="left",
-            font=ctk.CTkFont(size=23, weight="bold"),
-            text_color="#f4f9fb",
-        ).grid(row=0, column=0, padx=24, pady=(28, 8), sticky="w")
+        logo = self._load_brand_image()
+        if logo is not None:
+            ctk.CTkLabel(sidebar, text="", image=logo).grid(
+                row=0, column=0, padx=24, pady=(22, 8), sticky="w"
+            )
+        else:
+            ctk.CTkLabel(
+                sidebar,
+                text="ANONYMIKE\nCONNECT",
+                justify="left",
+                font=ctk.CTkFont(size=23, weight="bold"),
+                text_color="#f4f9fb",
+            ).grid(row=0, column=0, padx=24, pady=(28, 8), sticky="w")
         ctk.CTkLabel(
             sidebar,
             text="LOCAL HOTSPOT CONTROL",
