@@ -7,11 +7,35 @@ explain when a driver or administrator permission prevents an operation.
 
 from __future__ import annotations
 
+import base64
 import json
 import platform
 import re
 import subprocess
 from dataclasses import dataclass
+
+
+# Shared PowerShell preamble that loads the WinRT tethering APIs and provides a
+# synchronous `Await` helper for the IAsyncOperation results they return. Used
+# by the Windows Mobile Hotspot fallback when the legacy Hosted Network API is
+# unavailable on the current Wi-Fi driver.
+_WINRT_PREAMBLE = """
+$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Runtime.WindowsRuntime | Out-Null
+$asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1' })[0]
+function Await($op, $resultType) {
+  $asTask = $asTaskGeneric.MakeGenericMethod($resultType)
+  $task = $asTask.Invoke($null, @($op))
+  $task.Wait(-1) | Out-Null
+  $task.Result
+}
+[Windows.Networking.NetworkOperator.NetworkOperatorTetheringManager,Windows.Networking.NetworkOperator,ContentType=WindowsRuntime] | Out-Null
+[Windows.Networking.Connectivity.NetworkInformation,Windows.Networking.Connectivity,ContentType=WindowsRuntime] | Out-Null
+"""
+
+# Windows Mobile Hotspot always assigns this gateway/subnet to the host and
+# shares the active internet connection automatically.
+MOBILE_HOTSPOT_GATEWAY = "192.168.137.1"
 
 
 @dataclass(frozen=True)
@@ -41,6 +65,7 @@ class NetworkManager:
         self.gateway_ip = gateway_ip
         self.is_windows = platform.system() == "Windows"
         self.active = False
+        self.mode: str | None = None
         self.last_message = ""
 
     def _run(
@@ -60,6 +85,39 @@ class NetworkManager:
                 "-Command",
                 " ".join(command),
             ]
+        try:
+            completed = subprocess.run(
+                executable,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                check=False,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            return CommandResult(False, "", str(exc))
+        output = (completed.stdout or "").strip()
+        error = (completed.stderr or "").strip()
+        return CommandResult(completed.returncode == 0, output, error)
+
+    def _run_script(self, script: str, *, timeout: int = 45) -> CommandResult:
+        """Run a full PowerShell script via -EncodedCommand.
+
+        Base64/UTF-16LE encoding avoids all quoting and newline pitfalls, which
+        matters for the multi-line WinRT tethering scripts below.
+        """
+        if not self.is_windows:
+            return CommandResult(False, "", "Windows networking is only available on Windows.")
+        encoded = base64.b64encode(script.encode("utf-16-le")).decode("ascii")
+        executable = [
+            "powershell.exe",
+            "-NoProfile",
+            "-NonInteractive",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-EncodedCommand",
+            encoded,
+        ]
         try:
             completed = subprocess.run(
                 executable,
@@ -136,12 +194,11 @@ class NetworkManager:
         if not ssid.strip():
             return CommandResult(False, "", "Enter a network name before starting the hotspot.")
         if self.is_windows and not self.hosted_network_supported():
-            return CommandResult(
-                False,
-                "",
-                "This Wi-Fi driver does not expose Windows Hosted Network. "
-                "Use Windows Mobile Hotspot or a compatible Wi-Fi adapter.",
-            )
+            # Modern Wi-Fi drivers no longer expose the legacy Hosted Network
+            # API. Fall back to the Windows Mobile Hotspot (WinRT tethering),
+            # which most current drivers support and which shares the active
+            # internet connection automatically (no manual ICS step needed).
+            return self._start_via_mobile_hotspot(ssid.strip(), password)
 
         configure = self._run(
             ["netsh", "wlan", "set", "hostednetwork", "mode=allow", f"ssid={ssid.strip()}", f"key={password}"]
@@ -154,6 +211,7 @@ class NetworkManager:
 
         sharing = self.enable_internet_sharing(internet_adapter, wifi_adapter)
         self.active = True
+        self.mode = "hostednetwork"
         if sharing.ok:
             self.last_message = "Hotspot started and internet sharing enabled."
             return CommandResult(True, f"{started.output}\n{sharing.output}".strip())
@@ -165,11 +223,105 @@ class NetworkManager:
         )
 
     def stop_hotspot(self, internet_adapter: str = "", wifi_adapter: str = "") -> CommandResult:
+        if self.mode == "mobilehotspot":
+            stopped = self.stop_mobile_hotspot()
+            self.active = False
+            self.mode = None
+            self.last_message = "Hotspot stopped." if stopped.ok else (stopped.error or "Hotspot stopped.")
+            return stopped
         stopped = self._run(["netsh", "wlan", "stop", "hostednetwork"])
         self.disable_internet_sharing(internet_adapter, wifi_adapter)
         self.active = False
+        self.mode = None
         self.last_message = "Hotspot stopped."
         return stopped
+
+    def _start_via_mobile_hotspot(self, ssid: str, password: str) -> CommandResult:
+        result = self.start_mobile_hotspot(ssid, password)
+        if not result.ok:
+            return result
+        self.active = True
+        self.mode = "mobilehotspot"
+        self.gateway_ip = MOBILE_HOTSPOT_GATEWAY
+        self.last_message = (
+            f"Hotspot started with Windows Mobile Hotspot (gateway {MOBILE_HOTSPOT_GATEWAY})."
+        )
+        return CommandResult(
+            True,
+            result.output,
+            "Started with Windows Mobile Hotspot. Windows handles internet sharing; "
+            f"the captive portal now uses gateway {MOBILE_HOTSPOT_GATEWAY}.",
+        )
+
+    def mobile_hotspot_supported(self) -> bool:
+        """Best-effort check that the WinRT tethering manager can be created."""
+        if not self.is_windows:
+            return False
+        script = _WINRT_PREAMBLE + (
+            "$p = [Windows.Networking.Connectivity.NetworkInformation]::GetInternetConnectionProfile();"
+            "if ($null -eq $p) { Write-Output 'NOPROFILE'; exit 0 };"
+            "[Windows.Networking.NetworkOperator.NetworkOperatorTetheringManager]::CreateFromConnectionProfile($p) | Out-Null;"
+            "Write-Output 'OK'"
+        )
+        result = self._run_script(script)
+        return result.ok and "OK" in result.output
+
+    def start_mobile_hotspot(self, ssid: str, password: str) -> CommandResult:
+        if not self.is_windows:
+            return CommandResult(False, "", "Windows Mobile Hotspot is only available on Windows.")
+        safe_ssid = ssid.replace("'", "''")
+        safe_pass = password.replace("'", "''")
+        script = _WINRT_PREAMBLE + (
+            "$profile = [Windows.Networking.Connectivity.NetworkInformation]::GetInternetConnectionProfile()\n"
+            "if ($null -eq $profile) { throw 'No active internet connection was found to share. Connect this PC to the internet first.' }\n"
+            "$manager = [Windows.Networking.NetworkOperator.NetworkOperatorTetheringManager]::CreateFromConnectionProfile($profile)\n"
+            "$config = $manager.GetCurrentAccessPointConfiguration()\n"
+            f"$config.Ssid = '{safe_ssid}'\n"
+            f"$config.Passphrase = '{safe_pass}'\n"
+            "$resultType = [Windows.Networking.NetworkOperator.NetworkOperatorTetheringOperationResult]\n"
+            "Await ($manager.ConfigureAccessPointAsync($config)) $resultType | Out-Null\n"
+            "if ($manager.TetheringOperationalState -eq 1) { Write-Output 'STATUS:Success'; exit 0 }\n"
+            "$result = Await ($manager.StartTetheringAsync()) $resultType\n"
+            "Write-Output ('STATUS:' + $result.Status)\n"
+        )
+        return self._interpret_tethering(self._run_script(script), "start")
+
+    def stop_mobile_hotspot(self) -> CommandResult:
+        if not self.is_windows:
+            return CommandResult(True, "")
+        script = _WINRT_PREAMBLE + (
+            "$profile = [Windows.Networking.Connectivity.NetworkInformation]::GetInternetConnectionProfile()\n"
+            "if ($null -eq $profile) { Write-Output 'STATUS:Success'; exit 0 }\n"
+            "$manager = [Windows.Networking.NetworkOperator.NetworkOperatorTetheringManager]::CreateFromConnectionProfile($profile)\n"
+            "if ($manager.TetheringOperationalState -eq 2) { Write-Output 'STATUS:Success'; exit 0 }\n"
+            "$result = Await ($manager.StopTetheringAsync()) ([Windows.Networking.NetworkOperator.NetworkOperatorTetheringOperationResult])\n"
+            "Write-Output ('STATUS:' + $result.Status)\n"
+        )
+        return self._interpret_tethering(self._run_script(script), "stop")
+
+    def _interpret_tethering(self, outcome: CommandResult, action: str) -> CommandResult:
+        if "STATUS:Success" in outcome.output or "STATUS:0" in outcome.output:
+            return CommandResult(True, outcome.output)
+        combined = "\n".join(part for part in (outcome.output, outcome.error) if part).strip()
+        hint = self._tethering_hint(combined)
+        return CommandResult(
+            False,
+            "",
+            hint or combined or f"Windows Mobile Hotspot could not {action} the hotspot.",
+        )
+
+    @staticmethod
+    def _tethering_hint(text: str) -> str:
+        lowered = text.lower()
+        if "wifideviceoff" in lowered or "status:3" in lowered:
+            return "Turn on this PC's Wi-Fi adapter, then start the hotspot again."
+        if "mobilebroadbanddeviceoff" in lowered or "status:2" in lowered:
+            return "The mobile broadband device is off. Enable it and try again."
+        if "no active internet connection" in lowered:
+            return "Connect this PC to the internet first, then start the hotspot again."
+        if "operationinprogress" in lowered or "status:4" in lowered:
+            return "Windows is still changing the hotspot state. Wait a moment and try again."
+        return ""
 
     def enable_internet_sharing(self, source_name: str, target_name: str) -> CommandResult:
         if not self.is_windows:

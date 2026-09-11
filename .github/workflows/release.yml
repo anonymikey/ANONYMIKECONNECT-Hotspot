@@ -125,7 +125,11 @@ jobs:
           if ($LASTEXITCODE -eq 0) {
             Write-Host "release.json unchanged; nothing to commit."
           } else {
-            git commit -m "ci: update release portal metadata for $env:TAG [skip ci]"
+            # No [skip ci] here: this commit lands on the default branch, and
+            # the release workflow only runs on workflow_dispatch or v* tag
+            # pushes, so it cannot loop. Omitting [skip ci] lets Vercel auto-
+            # redeploy the portal with the updated release.json.
+            git commit -m "ci: update release portal metadata for $env:TAG"
             git pull --rebase origin $branch
             git push origin HEAD:$branch
           }
