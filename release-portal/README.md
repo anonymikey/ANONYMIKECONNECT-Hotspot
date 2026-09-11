@@ -1,18 +1,61 @@
-Release portal for Vercel
+# Release portal for ANONYMIKECONNECT
 
-This folder contains a minimal static release portal that displays the latest Windows release metadata for ANONYMIKECONNECT and provides a download button.
+A minimal static release portal that displays the latest Windows release
+metadata (version, SHA256, size, notes) and a download button. It also
+supports selecting a local `.exe` to compute its SHA256 and size in the
+browser for verification before running.
 
-Deployment
-- This is a static site and can be deployed directly to Vercel by connecting the repository and creating a new Project.
-- The root path is rewritten to /release-portal/index.html by vercel.json so visiting the project's domain shows the portal.
+## How releases work (automated)
 
-How release.json is managed
-- release-portal/release.json is a placeholder. Your CI (GitHub Actions) should overwrite this file or update the GitHub Release and publish the installer to a CDN/Release URL.
-- Recommended flow: CI builds ANONYMIKECONNECTV1.0.exe on windows-latest, computes SHA256 and size, uploads the EXE to GitHub Releases, and then writes the public URL into release-portal/release.json (commit + push or upload to a known CDN URL).
+1. Trigger `.github/workflows/release.yml` either by pushing a tag (`v1.0`,
+   `v1.1`, …) or manually via **Actions → Release ANONYMIKECONNECT → Run
+   workflow**.
+2. The workflow builds `ANONYMIKECONNECT<VERSION>.exe` on `windows-latest`
+   via `.github/scripts/windows-build.ps1` (PyInstaller, onefile).
+3. It computes the SHA256 and file size, publishes a GitHub Release with the
+   exe attached, and commits an updated `release-portal/release.json` whose
+   `url` points at the permanent release download.
+4. The portal page fetches `release.json` (relative path first, with a
+   cache-buster) and displays the new version, checksum, size, and download
+   immediately — no manual edits needed.
 
-Domain setup
-- After deploying on Vercel, add your custom domain (supalan.anonymiketech.space). Vercel will give DNS instructions (CNAME/A records). After DNS propagates, enable HTTPS via Vercel.
+Until the first release is published, `release.json` contains no `url`, and
+the page clearly says "No release published yet" instead of showing empty
+placeholders.
 
-Next steps for full automation
-1. Add a GitHub Actions workflow that runs on tag push or manual dispatch and does the Windows build (powershell script already added), uploads to GitHub Releases, and updates release-portal/release.json with the public download URL and checksum.
-2. (Optional) Implement content-signing and more robust smoke tests in the workflow.
+## Deployment
+
+This is a static site deployable to Vercel (or any static host):
+
+- Root `vercel.json` rewrites `/` to `/release-portal/index.html`.
+- A root `index.html` also redirects visitors to the portal on hosts
+  without rewrite rules.
+- All asset paths inside the portal are relative, so it works whether the
+  site root is the repo root or `release-portal/` itself (e.g. when Vercel's
+  *Root Directory* is set to `release-portal`).
+- The preview image lives at `release-portal/assets/` so it ships with the
+  portal in every layout.
+
+## Verifying an installer manually
+
+PowerShell:
+
+```powershell
+Get-FileHash ANONYMIKECONNECTV1.0.exe -Algorithm SHA256
+```
+
+macOS / Linux:
+
+```sh
+shasum -a 256 ANONYMIKECONNECTV1.0.exe
+```
+
+The hash must match the SHA256 shown on the portal before you run the file.
+
+## Building locally (Windows)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .github/scripts/windows-build.ps1
+```
+
+Add `-SkipBuild` to recompute `release.json` from an existing `dist/` exe.

@@ -1,8 +1,8 @@
 {
-  "version": "ANONYMIKECONNECTV1.0",
+  "version": null,
   "file": "ANONYMIKECONNECTV1.0.exe",
   "url": "",
   "sha256": "",
   "size": 0,
-  "notes": "Placeholder release metadata. CI will replace this file with real release data after building and uploading the EXE."
+  "notes": "No release published yet. The release workflow publishes a build, then updates this file automatically."
 }

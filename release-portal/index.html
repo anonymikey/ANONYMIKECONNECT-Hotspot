@@ -7,8 +7,8 @@
   <meta name="description" content="Download ANONYMIKECONNECTV1.0 for Windows, verify checksum, and follow installation instructions." />
   <meta property="og:title" content="ANONYMIKECONNECT — Download & Install" />
   <meta property="og:description" content="Download ANONYMIKECONNECTV1.0 for Windows, verify checksum, and follow installation instructions." />
-  <meta property="og:image" content="/screenshots/anonymikeconnect-preview.jpg" />
-  <link rel="icon" href="/screenshots/anonymikeconnect-preview.jpg" />
+  <meta property="og:image" content="assets/anonymikeconnect-preview.jpg" />
+  <link rel="icon" type="image/jpeg" href="assets/anonymikeconnect-preview.jpg" />
   <style>
   :root{
     --bg-1:#071025; --bg-2:#061026; --card:#071428; --muted:#9aa4b2; --accent:#4f9cff; --glass:rgba(255,255,255,0.02);
@@ -67,7 +67,7 @@
 <body>
   <main class="wrap">
     <header>
-      <img src="/screenshots/anonymikeconnect-preview.jpg" alt="ANONYMIKECONNECT preview" />
+      <img src="assets/anonymikeconnect-preview.jpg" alt="ANONYMIKECONNECT preview" onerror="this.style.display='none'" />
       <div class="titles">
         <h1>ANONYMIKECONNECT</h1>
         <p class="muted">Secure hotspot portal — stylish download dashboard with on-the-fly checksum verification.</p>
@@ -88,7 +88,9 @@
           <button id="chooseLocal" class="btn secondary">Select local installer</button>
         </div>
 
-        <div id="status" class="muted small" style="margin-top:10px">Checking release metadata…</div>
+        <div id="status" class="muted small" style="margin-top:10px" role="status" aria-live="polite">Checking release metadata…</div>
+
+    <button id="copySha" class="btn secondary" style="display:none;margin-top:10px" title="Copy the SHA256 checksum to the clipboard">Copy SHA256</button>
 
         <div id="localArea" style="display:none;margin-top:10px">
           <label class="muted small">Choose .exe (or drag & drop):</label>
@@ -125,7 +127,7 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
 
         <footer>
           <p>Hosted: supalan.anonymiketech.space — deploy on Vercel or test locally by opening this file in a browser.</p>
-          <p><a href="/README.md">Project README</a></p>
+          <p><a href="https://github.com/anonymike/ANONYMIKECONNECT-Hotspot" target="_blank" rel="noopener noreferrer">Project on GitHub</a></p>
         </footer>
       </section>
     </div>
@@ -133,7 +135,10 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
 
   <script>
   (function(){
-    const releaseUrl = '/release-portal/release.json';
+    // Resolve release.json relative to this page first, then fall back to the
+    // repo-root layout (and add a cache-buster so updated releases appear immediately).
+    const releaseUrl = new URL('release.json', window.location.href).href + '?t=' + Date.now();
+    const releaseUrlAlt = new URL('/release-portal/release.json', window.location.origin).href + '?t=' + Date.now();
     const versionEl = document.getElementById('version');
     const notesEl = document.getElementById('notes');
     const shaEl = document.getElementById('sha');
@@ -145,6 +150,19 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
     const localArea = document.getElementById('localArea');
     const drop = document.getElementById('drop');
     const fileInput = document.getElementById('fileInput');
+    const copyShaBtn = document.getElementById('copySha');
+    let currentSha = '';
+
+    copyShaBtn.addEventListener('click', async () => {
+      if (!currentSha) return;
+      try {
+        await navigator.clipboard.writeText(currentSha);
+        copyShaBtn.textContent = 'Copied!';
+        setTimeout(() => { copyShaBtn.textContent = 'Copy SHA256'; }, 1500);
+      } catch (_) {
+        statusEl.textContent = 'Copy failed — select the checksum text manually.';
+      }
+    });
 
     function humanFileSize(bytes){
       if (!bytes && bytes !== 0) return '—';
@@ -152,18 +170,6 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
       const units = ['B','KB','MB','GB','TB'];
       const i = Math.floor(Math.log(bytes) / Math.log(1024));
       return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + units[i];
-    }
-
-    function hex(buffer){
-      const hexCodes = [];
-      const view = new DataView(buffer);
-      for (let i = 0; i < view.byteLength; i += 4) {
-        // read 4 bytes and convert
-        const value = view.getUint32(i, false);
-        const stringValue = value.toString(16).padStart(8, '0');
-        hexCodes.push(stringValue);
-      }
-      return hexCodes.join('');
     }
 
     function arrayBufferToHex(buffer){
@@ -177,10 +183,9 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
     }
 
     async function computeSHA256(file, onProgress){
-      // read in chunks for large files
-      const chunkSize = 64 * 1024 * 16; // ~1MB
+      // Stream the file in chunks with progress, then digest the whole
+      // buffer once — the result must equal `Get-FileHash`/`shasum -a 256`.
       const reader = file.stream().getReader();
-      const ctx = new Uint8Array(0);
       const chunks = [];
       let received = 0;
       while(true){
@@ -190,12 +195,11 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
         received += value.length;
         if (onProgress) onProgress(received);
       }
-      // concatenate
       let total = 0;
       for (const c of chunks) total += c.length;
       const all = new Uint8Array(total);
       let offset = 0;
-      for (const c of chunks){ all.set(c, offset); offset += c.length }
+      for (const c of chunks){ all.set(c, offset); offset += c.length; }
       const digest = await crypto.subtle.digest('SHA-256', all.buffer);
       return arrayBufferToHex(digest);
     }
@@ -211,14 +215,39 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
       downloadBtn.setAttribute('disabled', '');
     }
 
-    // Try load release.json
-    fetch(releaseUrl).then(async res => {
-      if (!res.ok) throw new Error('release.json not found');
-      const meta = await res.json();
-      versionEl.textContent = meta.version || '—';
+    async function loadMetadata(){
+      const res = await fetch(releaseUrl, { cache: 'no-store' });
+      if (!res.ok) throw new Error('release.json not found at ' + releaseUrl);
+      return res.json();
+    }
+
+    async function loadMetadataAlt(){
+      const res = await fetch(releaseUrlAlt, { cache: 'no-store' });
+      if (!res.ok) throw new Error('release.json not found at ' + releaseUrlAlt);
+      return res.json();
+    }
+
+    function applyMetadata(meta){
+      versionEl.textContent = meta.version || 'Not published yet';
       notesEl.textContent = meta.notes || '—';
       shaEl.textContent = meta.sha256 || '—';
       sizeEl.textContent = meta.size ? humanFileSize(meta.size) : '—';
+    }
+
+    function markUnpublished(message){
+      versionEl.textContent = 'Not published yet';
+      notesEl.textContent = 'No release has been published from this repository yet. Once CI publishes a release, the version, checksum, and download will appear here automatically.';
+      shaEl.textContent = '—';
+      sizeEl.textContent = '—';
+      disableDownload();
+      statusEl.textContent = message;
+      localArea.style.display = 'block';
+    }
+
+    // Try load release.json (relative path first, then repo-root layout)
+    loadMetadata().catch(()=> loadMetadataAlt()).then(async meta => {
+      if (!meta) throw new Error('No release metadata reachable');
+      applyMetadata(meta);
 
       if (meta.url && meta.url.length>0){
         // use remote installer
@@ -226,18 +255,12 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
         statusEl.textContent = 'Installer available for download (from release.json).';
       } else {
         disableDownload();
-        statusEl.textContent = 'No remote installer URL found in release.json. You can select a local file to test.';
+        statusEl.textContent = 'No installer URL yet — it appears automatically once CI publishes a release. You can also verify a local installer below.';
         localArea.style.display = 'block';
       }
     }).catch(err=>{
-      // fallback to manual local selection
-      versionEl.textContent = '—';
-      notesEl.textContent = '—';
-      shaEl.textContent = '—';
-      sizeEl.textContent = '—';
-      disableDownload();
-      statusEl.textContent = 'No release metadata found or release.json missing. Use "Select local installer" to test.';
-      localArea.style.display = 'block';
+      // No metadata anywhere: explain clearly instead of a wall of em-dashes
+      markUnpublished('No release published yet — CI will populate this automatically. You can still verify a local installer below.');
       console.warn(err);
     });
 
@@ -267,9 +290,13 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
       if (vMatch) versionEl.textContent = vMatch[1]; else versionEl.textContent = 'local';
 
       try{
-        const sha = await computeSHA256(file, (progress)=>{/* could show progress */});
+        const sha = await computeSHA256(file, (progress) => {
+          statusEl.textContent = 'Computing SHA256… ' + humanFileSize(progress) + ' of ' + humanFileSize(file.size);
+        });
+        currentSha = sha;
         shaEl.textContent = sha;
-        statusEl.textContent = 'Local installer ready — computed SHA256 and size.';
+        copyShaBtn.style.display = 'inline-flex';
+        statusEl.textContent = 'Local installer ready — computed SHA256 and size. Compare it with the checksum on the release before running.';
         const blobUrl = URL.createObjectURL(file);
         enableDownload(blobUrl, file.name);
       } catch(err){

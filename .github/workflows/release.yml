@@ -1,0 +1,119 @@
+name: Release ANONYMIKECONNECT
+
+# Builds the Windows installer on tag push or manual dispatch,
+# publishes it as a GitHub Release, and updates the release portal
+# metadata (release-portal/release.json) so the download page shows
+# the real version, SHA256, size, and download URL.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version name (also the exe name, without .exe)'
+        required: false
+        default: 'ANONYMIKECONNECTV1.0'
+      make_tag:
+        description: 'Tag to create/update for the release'
+        required: false
+        default: 'v1.0'
+  push:
+    tags:
+      - 'v*'
+
+# Never run two releases concurrently: the metadata commit below would race.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Determine version and tag
+        id: meta
+        shell: pwsh
+        run: |
+          if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
+            $version = '${{ github.event.inputs.version }}'
+            $tag = '${{ github.event.inputs.make_tag }}'
+          } else {
+            # Tag push: preserve the exact tag that triggered the run.
+            $version = 'ANONYMIKECONNECT' + ('${{ github.ref_name }}' -replace '^v', 'V')
+            $tag = '${{ github.ref_name }}'
+          }
+          if (-not $version) { $version = 'ANONYMIKECONNECTV1.0' }
+          if (-not $tag) { $tag = 'v1.0' }
+          "version=$version" | Out-File -Append -Encoding utf8 $env:GITHUB_OUTPUT
+          "tag=$tag" | Out-File -Append -Encoding utf8 $env:GITHUB_OUTPUT
+          Write-Host "Version: $version  Tag: $tag"
+
+      - name: Build installer and write portal metadata
+        shell: pwsh
+        run: >
+          powershell -ExecutionPolicy Bypass
+          -File .github/scripts/windows-build.ps1
+          -Version '${{ steps.meta.outputs.version }}'
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ANONYMIKECONNECT-windows-installer
+          path: dist/*.exe
+          if-no-files-found: error
+
+      - name: Create/update GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        shell: pwsh
+        run: |
+          $exePath = "dist/$env:VERSION.exe"
+          # Replace any existing release for this tag so re-runs stay clean.
+          gh release delete $env:TAG --yes --cleanup-tag 2>$null
+          if ($LASTEXITCODE -ne 0) { Write-Host "No existing release for $env:TAG — creating a new one." }
+          gh release create $env:TAG $exePath `
+            --title "ANONYMIKECONNECT $env:TAG" `
+            --notes "Windows installer built by CI. Verify the SHA256 shown on the release portal before running."
+
+      - name: Update release portal metadata
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        shell: pwsh
+        run: |
+          # Point release.json at the permanent GitHub Release download URL
+          # and commit it back so the portal picks it up on the next page load.
+          $metaPath = 'release-portal/release.json'
+          $meta = Get-Content $metaPath -Raw | ConvertFrom-Json
+          $meta.url = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:TAG/$env:VERSION.exe"
+          $meta | ConvertTo-Json | Set-Content -Encoding UTF8 $metaPath
+
+          $branch = '${{ github.event.repository.default_branch }}'
+          if (-not $branch) { $branch = 'main' }
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add $metaPath
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "release.json unchanged; nothing to commit."
+          } else {
+            git commit -m "ci: update release portal metadata for $env:TAG [skip ci]"
+            git pull --rebase origin $branch
+            git push origin HEAD:$branch
+          }

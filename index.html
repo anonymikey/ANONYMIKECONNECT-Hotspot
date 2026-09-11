@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ANONYMIKECONNECT — Redirecting…</title>
+  <meta name="robots" content="noindex" />
+  <script>
+    // Works whether the site is served from the repo root or with
+    // release-portal/ as the web root: probe the portal folder first, then
+    // the file. Never probes this page itself — that would redirect-loop.
+    (function () {
+      var current = window.location.pathname.split('/').pop() || 'index.html';
+      var candidates = ['release-portal/', 'release-portal/index.html'].filter(function (t) {
+        return t !== current;
+      });
+      function tryNext(i) {
+        if (i >= candidates.length) {
+          document.body.innerHTML =
+            '<p style="font-family:sans-serif;padding:2rem">Could not locate the release portal. ' +
+            'Open <code>release-portal/index.html</code> directly.</p>';
+          return;
+        }
+        var target = candidates[i];
+        // HEAD requests can be blocked on some static hosts; fall back silently.
+        fetch(target, { method: 'GET', cache: 'no-store' })
+          .then(function (res) {
+            if (res.ok) {
+              window.location.replace(target);
+            } else {
+              tryNext(i + 1);
+            }
+          })
+          .catch(function () { tryNext(i + 1); });
+      }
+      tryNext(0);
+    })();
+  </script>
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #071025; color: #9aa4b2; display: grid; place-items: center; min-height: 100vh; margin: 0; }
+  </style>
+</head>
+<body>
+  <p>Taking you to the ANONYMIKECONNECT download page…</p>
+</body>
+</html>
