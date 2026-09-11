@@ -1,0 +1,27 @@
+Create a native Windows desktop application named "ANONYMIKECONNECT" using Python. It must look and function similarly to MyPublicWiFi, featuring a modern, dark-themed GUI built with the `customtkinter` library.
+
+The application must run entirely locally on a Windows machine and interact with the system's network adapters to share an internet connection and host a captive portal.
+
+Core Requirements & Layout to Build:
+
+1. GUI STRUCTURE & DESIGN:
+- Main Window: A clean, dark-mode window with a left sidebar navigation menu containing icons for: "WLAN Hotspot" (Main), "Connected Clients", "Voucher Manager", and "Settings".
+- Main Hotspot Tab:
+  * Dropdown to select "Internet Connection" source (e.g., Ethernet adapter connected to Airtel ODU).
+  * Dropdown to select "Wi-Fi Adapter" used to broadcast the hotspot.
+  * Input field for "Network Name (SSID)" -> Default value: "ANONYMIKECONNECT".
+  * Input field for "Network Key" (Password toggle visibility icon included).
+  * A prominent, wide action button at the bottom labeled "Start Hotspot" (toggles to "Stop Hotspot" when active).
+  * Status footer showing current configuration, broadcast IP (e.g., 192.168.10.1), and a generated QR code button for quick mobile connection.
+
+2. LOCAL NETWORK & CAPTIVE PORTAL ENGINE:
+- Use Python's `subprocess` module to programmatically execute Windows Netsh commands or the Windows Virtual Wi-Fi Miniport Adapter commands (`netsh wlan set hostednetwork...` or modern Windows 10/11 Mobile Hotspot APIs via PowerShell) to start/stop the hotspot.
+- Integrate a lightweight local web server (using Flask or FastAPI running on a background thread) bound to the local gateway IP. 
+- Implement basic DNS redirection/spoofing logic so that when a tenant connects to the Wi-Fi and tries to browse the web, they are automatically intercepted and redirected to the local Flask server hosting the Login/Splash Page.
+
+3. VOUCHER & SESSION MANAGEMENT:
+- Clients Tab: A clean table showing a list of currently connected devices with columns for Hostname, IP Address, MAC Address, and Connection Time.
+- Voucher Tab: A local management screen allowing the admin to generate unique random alphanumeric codes. Include a simple local database (SQLite) to save these vouchers, track their expiration times, and mark them as active or used.
+- Login Logic: The local splash web page must request a voucher. When submitted, the Flask backend validates it against the SQLite database. If valid, the app allows network traffic for that MAC address.
+
+Provide the complete source code structure, including the `main.py` for the GUI, the `network.py` for handling Windows hotspot APIs, and instructions on how to use `pyinstaller` to compile the final script into a standalone Windows executable (.exe).

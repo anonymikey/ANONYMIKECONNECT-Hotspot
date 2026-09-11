@@ -1,6 +1,6 @@
-# [Project name]
+# ANONYMIKECONNECT
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+ANONYMIKECONNECT is a local-first Windows hotspot manager with a customtkinter desktop UI, voucher-based guest access, and a Flask captive portal.
 
 ## Run & Operate
 
@@ -10,6 +10,7 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required env: `DATABASE_URL` — Postgres connection string
+- Windows app: install `anonymikeconnect/requirements.txt`, then run `python -m anonymikeconnect.main` from an elevated PowerShell session.
 
 ## Stack
 
@@ -22,23 +23,32 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `anonymikeconnect/main.py` — desktop UI and page navigation.
+- `anonymikeconnect/network.py` — Windows adapters, Hosted Network, ICS, ARP, and firewall helpers.
+- `anonymikeconnect/portal.py` — Flask splash page and optional DNS redirector.
+- `anonymikeconnect/database.py` — local SQLite voucher and session persistence.
+- `anonymikeconnect/README.md` — Windows run and PyInstaller instructions.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The Windows desktop client is kept as a standalone Python package because it needs local `netsh`, PowerShell COM, ARP, and firewall access that the web artifacts do not provide.
+- SQLite is the source of truth for vouchers and portal sessions; the UI and Flask thread share the store through a re-entrant lock.
+- Hosted Network and Internet Connection Sharing are attempted through native Windows tools, but command failures are surfaced instead of silently falling back.
+- The DNS responder is optional and independent from the Flask portal so port 53 conflicts do not prevent the local splash page from starting.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+The app lets an operator select upstream and broadcast adapters, start a local WPA hotspot, generate time-limited guest vouchers, view ARP-discovered clients, expose a local login splash page, and package the app into a Windows executable.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+No additional preferences recorded.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The Windows app needs administrator privileges for Hosted Network, ICS, firewall rules, and UDP port 53.
+- Many modern Wi-Fi drivers do not support `netsh wlan set hostednetwork`; the app reports this explicitly and documents Windows Mobile Hotspot as the fallback.
+- The captive portal should not be treated as a complete security boundary without a properly configured gateway/firewall.
 
 ## Pointers
 
