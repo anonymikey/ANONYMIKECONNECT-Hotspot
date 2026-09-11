@@ -9,7 +9,6 @@
   <meta property="og:description" content="Download ANONYMIKECONNECTV1.0 for Windows, verify checksum, and follow installation instructions." />
   <meta property="og:image" content="/screenshots/anonymikeconnect-preview.jpg" />
   <link rel="icon" href="/screenshots/anonymikeconnect-preview.jpg" />
-  <link rel="stylesheet" href="/release-portal/styles.css" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -20,6 +19,26 @@
     "offers": {"@type":"Offer","price":"0","priceCurrency":"USD"}
   }
   </script>
+  <style>
+  /* Inlined CSS to avoid external asset loading issues */
+  :root{--bg:#0f1724;--card:#0b1020;--accent:#1e90ff;--muted:#9aa4b2;--white:#fff}
+  *{box-sizing:border-box}
+  body{font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial; margin:0;background:linear-gradient(180deg,#071025 0%,#0b1223 100%);color:var(--white);min-height:100vh}
+  .container{max-width:980px;margin:36px auto;padding:24px}
+  header h1{margin:0;font-size:2rem}
+  .tagline{color:var(--muted);margin-top:6px}
+  .release{display:flex;gap:20px;align-items:flex-start;margin-top:18px}
+  .screenshot{width:320px;height:auto;border-radius:8px;border:1px solid rgba(255,255,255,0.06)}
+  .release-info{flex:1;background:rgba(255,255,255,0.02);padding:18px;border-radius:8px}
+  .btn{display:inline-block;margin-top:12px;padding:10px 16px;background:var(--accent);color:#fff;text-decoration:none;border-radius:6px}
+  .btn.disabled{opacity:.5;pointer-events:none}
+  .status{color:var(--muted);margin-top:8px}
+  .install{margin-top:28px;background:rgba(255,255,255,0.02);padding:18px;border-radius:8px}
+  .cmd{background:#021025;padding:12px;border-radius:6px;color:var(--muted);overflow:auto}
+  footer{margin-top:28px;color:var(--muted)}
+  code{background:rgba(0,0,0,0.25);padding:2px 6px;border-radius:4px}
+  a{color:var(--accent)}
+  </style>
 </head>
 <body>
   <main class="container">
@@ -61,6 +80,51 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe
       <p><a href="/README.md">Project README</a></p>
     </footer>
   </main>
-  <script src="/release-portal/app.js"></script>
+  <script>
+  // Inlined JS to avoid separate asset fetch issues
+  (function(){
+    const releaseUrl = '/release-portal/release.json';
+    const versionEl = document.getElementById('version');
+    const notesEl = document.getElementById('notes');
+    const shaEl = document.getElementById('sha');
+    const sizeEl = document.getElementById('size');
+    const downloadEl = document.getElementById('download');
+    const statusEl = document.getElementById('status');
+
+    function humanFileSize(bytes){
+      if (!bytes) return '—';
+      if (bytes === 0) return '0 B';
+      const i = Math.floor(Math.log(bytes) / Math.log(1024));
+      return (bytes / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B','KB','MB','GB','TB'][i];
+    }
+
+    fetch(releaseUrl).then(res=>{
+      if (!res.ok) throw new Error('release.json not found');
+      return res.json();
+    }).then(meta=>{
+      versionEl.textContent = 'Version: ' + (meta.version || '—');
+      notesEl.textContent = 'Release notes: ' + (meta.notes || '—');
+      shaEl.textContent = meta.sha256 || '—';
+      sizeEl.textContent = meta.size ? humanFileSize(meta.size) : '—';
+
+      if (meta.url && meta.url.length>0){
+        downloadEl.href = meta.url;
+        downloadEl.classList.remove('disabled');
+        statusEl.textContent = 'Installer available for download.';
+      } else {
+        downloadEl.classList.add('disabled');
+        statusEl.textContent = 'Installer is not yet available. CI will update release.json when a build is published.';
+      }
+    }).catch(err=>{
+      versionEl.textContent = 'Version: —';
+      notesEl.textContent = 'Release notes: —';
+      shaEl.textContent = '—';
+      sizeEl.textContent = '—';
+      downloadEl.classList.add('disabled');
+      statusEl.textContent = 'No release metadata found. Please run the CI to publish an artifact.';
+      console.warn(err);
+    });
+  })();
+  </script>
 </body>
 </html>
