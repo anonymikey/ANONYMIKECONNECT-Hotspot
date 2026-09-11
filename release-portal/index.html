@@ -95,8 +95,15 @@
     <button id="copySha" class="btn secondary" style="display:none;margin-top:10px" title="Copy the SHA256 checksum to the clipboard">Copy SHA256</button>
 
         <div id="localArea" style="display:none;margin-top:10px">
-          <label class="muted small">Choose .exe (or drag & drop):</label>
-          <div id="drop" class="drop" tabindex="0">Drop installer here or click to choose a file</div>
+          <h3 style="margin:16px 0 8px;font-size:1rem">Select a local installer</h3>
+          <ol class="install-steps small">
+            <li>Click <strong>Select local installer</strong>.</li>
+            <li>Open your <strong>Downloads</strong> folder in File Explorer.</li>
+            <li>Select the downloaded <code>.exe</code> file.</li>
+            <li>Wait for SHA256 verification to finish, then use the generated download link.</li>
+          </ol>
+          <label class="muted small" for="fileInput">Choose .exe (or drag & drop):</label>
+          <div id="drop" class="drop" tabindex="0" role="button" aria-controls="fileInput">Drop installer here or click to choose a file</div>
           <input id="fileInput" type="file" accept=".exe,application/octet-stream" style="display:none" />
         </div>
 
@@ -110,7 +117,8 @@
 
         <div style="margin-top:12px">
           <ol class="install-steps">
-            <li>Download the installer or select your local copy using the button on the left.</li>
+            <li>Click <strong>Download Windows installer</strong>; your browser normally saves the complete <code>.exe</code> file to Downloads.</li>
+            <li>For an existing file, click <strong>Select local installer</strong>, open Downloads, and choose the <code>.exe</code> file.</li>
             <li>Compare the SHA256 checksum shown here with the command-line output.</li>
             <li>Run the installer once you have confirmed the checksum and file size.</li>
           </ol>
