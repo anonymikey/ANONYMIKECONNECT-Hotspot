@@ -23,6 +23,8 @@ PORTAL_TEMPLATE = """
     :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
     body { margin:0; min-height:100vh; display:grid; place-items:center; background:#061c2c; color:#f5f9fc; }
     main { width:min(92vw,420px); padding:36px; border:1px solid #1d5272; border-radius:18px; background:#08263a; box-shadow:0 20px 60px #03111c99; }
+    .brand { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+    .brand img { width:120px; height:58px; object-fit:contain; object-position:left center; }
     .mark { color:#48b2f4; font-size:12px; font-weight:800; letter-spacing:.18em; }
     h1 { margin:14px 0 8px; font-size:30px; }
     p { color:#a7bdca; line-height:1.5; }
@@ -36,7 +38,10 @@ PORTAL_TEMPLATE = """
 </head>
 <body>
   <main>
-    <div class="mark">ANONYMIKECONNECT</div>
+    <div class="brand">
+      <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Sep%2011%2C%202026%2C%2001_08_15%20PM-h1DWAiZ5E3Y4SMk3A2I7AdYEu0dclb.png" alt="ANONYMIKECONNECT logo" onerror="this.style.display='none'">
+      <div class="mark">ANONYMIKECONNECT</div>
+    </div>
     <h1>Connect to {{ ssid }}</h1>
     <p>Enter the access voucher provided by your host to get online.</p>
     <form method="post" action="{{ url_for('login') }}">
