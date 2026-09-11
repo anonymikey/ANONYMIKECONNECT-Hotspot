@@ -35,7 +35,7 @@
 
   .btn{display:inline-flex;gap:10px;align-items:center;padding:10px 14px;background:var(--accent);color:#04202f;text-decoration:none;border-radius:10px;font-weight:600;border:none;cursor:pointer}
   .btn.secondary{background:transparent;color:var(--accent);border:1px solid rgba(79,156,255,0.12)}
-  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .btn[disabled],.btn.disabled{opacity:.5;cursor:not-allowed}
 
   .drop{margin-top:12px;padding:12px;border:2px dashed rgba(255,255,255,0.03);border-radius:8px;text-align:center;color:var(--muted);transition:all .15s}
   .drop.dragover{background:rgba(79,156,255,0.03);border-color:rgba(79,156,255,0.18);color:#dfeeff}
@@ -85,7 +85,7 @@
         <div id="notes" class="notes">—</div>
 
         <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
-          <a id="downloadBtn" class="btn" href="#" download disabled>Download Windows installer</a>
+          <a id="downloadBtn" class="btn disabled" href="#" download aria-disabled="true">Download Windows installer</a>
           <button id="chooseLocal" class="btn secondary">Select local installer</button>
         </div>
 
@@ -209,12 +209,14 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
     function enableDownload(href, filename){
       downloadBtn.href = href;
       downloadBtn.download = filename || 'ANONYMIKECONNECT.exe';
-      downloadBtn.removeAttribute('disabled');
+      downloadBtn.classList.remove('disabled');
+      downloadBtn.removeAttribute('aria-disabled');
     }
 
     function disableDownload(){
       downloadBtn.href = '#';
-      downloadBtn.setAttribute('disabled', '');
+      downloadBtn.classList.add('disabled');
+      downloadBtn.setAttribute('aria-disabled', 'true');
     }
 
     async function loadMetadata(){
@@ -310,7 +312,7 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
 
     // If user clicks disabled download, show hint
     downloadBtn.addEventListener('click', (e)=>{
-      if (downloadBtn.hasAttribute('disabled')){
+      if (downloadBtn.getAttribute('aria-disabled') === 'true'){
         e.preventDefault();
         alert('No installer available yet. Select a local installer to test checksum and download behavior.');
       }
