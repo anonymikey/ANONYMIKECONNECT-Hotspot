@@ -113,6 +113,11 @@ jobs:
           $meta.sha256 = $hash
           $meta.size = [int64]$fileInfo.Length
           $meta.notes = "Windows build published by CI ($env:VERSION)."
+          # Stamp the UTC publish time (ISO 8601). This also guarantees the file
+          # changes on every run, so there is always a commit for Vercel to
+          # auto-redeploy — even when the version, hash, and size are unchanged.
+          $publishedAt = (Get-Date).ToUniversalTime().ToString("o")
+          $meta | Add-Member -NotePropertyName publishedAt -NotePropertyValue $publishedAt -Force
           $meta | ConvertTo-Json | Set-Content -Encoding UTF8 $metaPath
 
           $branch = '${{ github.event.repository.default_branch }}'
