@@ -103,7 +103,16 @@ jobs:
           # and commit it back so the portal picks it up on the next page load.
           $metaPath = 'release-portal/release.json'
           $meta = Get-Content $metaPath -Raw | ConvertFrom-Json
+          $exePath = "dist/$env:VERSION.exe"
+          if (-not (Test-Path $exePath)) { throw "Release executable not found: $exePath" }
+          $fileInfo = Get-Item $exePath
+          $hash = (Get-FileHash -Algorithm SHA256 $exePath).Hash.ToLowerInvariant()
+          $meta.version = $env:VERSION
+          $meta.file = "$env:VERSION.exe"
           $meta.url = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:TAG/$env:VERSION.exe"
+          $meta.sha256 = $hash
+          $meta.size = [int64]$fileInfo.Length
+          $meta.notes = "Windows build published by CI ($env:VERSION)."
           $meta | ConvertTo-Json | Set-Content -Encoding UTF8 $metaPath
 
           $branch = '${{ github.event.repository.default_branch }}'
