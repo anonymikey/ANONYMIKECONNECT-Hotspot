@@ -346,7 +346,7 @@ class AnonymikeConnectApp(ctk.CTk):
         rows = [
             ("Database", str(Path("data/anonymikeconnect.sqlite3")), "Voucher data is kept locally in SQLite."),
             ("Portal", "Flask + local DNS redirector", "The DNS listener needs administrator privileges on port 53."),
-            ("Hotspot engine", "netsh Hosted Network + Windows ICS", "Driver support and administrator privileges are required."),
+            ("Hotspot engine", "Hosted Network + Mobile Hotspot fallback", "Falls back to Windows Mobile Hotspot when the driver lacks Hosted Network."),
         ]
         for row, (label, value, note) in enumerate(rows):
             ctk.CTkLabel(panel, text=label.upper(), text_color=MUTED, font=ctk.CTkFont(size=10, weight="bold")).grid(
@@ -422,7 +422,11 @@ class AnonymikeConnectApp(ctk.CTk):
             self._set_hotspot_status(False, result.error or "Hotspot did not start.")
             return
 
-        self.portal = CaptivePortal(self.store, self.network, self.ssid_entry.get(), gateway, port)
+        # start_hotspot may switch to Windows Mobile Hotspot, which forces its
+        # own gateway/subnet — always use whatever gateway the network manager
+        # settled on so the portal binds to a real local address.
+        effective_gateway = self.network.gateway_ip
+        self.portal = CaptivePortal(self.store, self.network, self.ssid_entry.get(), effective_gateway, port)
         status = self.portal.start(enable_dns=True)
         detail = result.error or status.message
         self._set_hotspot_status(True, detail)
