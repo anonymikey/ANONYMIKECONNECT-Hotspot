@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ANONYMIKECONNECT — Download & Install</title>
+  <meta name="description" content="Download ANONYMIKECONNECTV1.0 for Windows, verify checksum, and follow installation instructions." />
+  <meta property="og:title" content="ANONYMIKECONNECT — Download & Install" />
+  <meta property="og:description" content="Download ANONYMIKECONNECTV1.0 for Windows, verify checksum, and follow installation instructions." />
+  <meta property="og:image" content="/screenshots/anonymikeconnect-preview.jpg" />
+  <link rel="icon" href="/screenshots/anonymikeconnect-preview.jpg" />
+  <link rel="stylesheet" href="/release-portal/styles.css" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "ANONYMIKECONNECT",
+    "operatingSystem": "Windows",
+    "applicationCategory": "NetworkApplication",
+    "offers": {"@type":"Offer","price":"0","priceCurrency":"USD"}
+  }
+  </script>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>ANONYMIKECONNECT</h1>
+      <p class="tagline">Secure hotspot portal — download the Windows installer and follow simple installation steps.</p>
+    </header>
+
+    <section class="release">
+      <img class="screenshot" src="/screenshots/anonymikeconnect-preview.jpg" alt="ANONYMIKECONNECT preview" />
+      <div class="release-info">
+        <h2 id="version">Version: —</h2>
+        <p id="notes">Release notes: —</p>
+        <p><strong>SHA256:</strong> <code id="sha">—</code></p>
+        <p><strong>Size:</strong> <span id="size">—</span></p>
+        <a id="download" class="btn disabled" href="#" download>Download ANONYMIKECONNECTV1.0.exe</a>
+        <p id="status" class="status">Checking release status...</p>
+      </div>
+    </section>
+
+    <section class="install">
+      <h3>Installation</h3>
+      <ol>
+        <li>Download the installer from the button above.</li>
+        <li>Verify the SHA256 checksum matches the value on this page.</li>
+        <li>Double-click ANONYMIKECONNECTV1.0.exe and follow the on-screen prompts.</li>
+      </ol>
+      <h4>How to verify the checksum</h4>
+      <pre class="cmd"><strong>PowerShell:</strong>
+Get-FileHash ANONYMIKECONNECTV1.0.exe -Algorithm SHA256
+
+<strong>macOS / Linux:</strong>
+shasum -a 256 ANONYMIKECONNECTV1.0.exe
+      </pre>
+    </section>
+
+    <footer>
+      <p>Hosted: supalan.anonymiketech.space (configure in Vercel after deploy)</p>
+      <p><a href="/README.md">Project README</a></p>
+    </footer>
+  </main>
+  <script src="/release-portal/app.js"></script>
+</body>
+</html>
