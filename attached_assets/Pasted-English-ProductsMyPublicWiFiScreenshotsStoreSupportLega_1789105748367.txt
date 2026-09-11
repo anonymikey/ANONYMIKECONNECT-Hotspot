@@ -1,0 +1,318 @@
+English
+ProductsMyPublicWiFiScreenshotsStoreSupportLegal
+MyPublicWiFi		Introduction	
+
+Next
+MyPublicWiFi: Turn your computer into a Wi-Fi Access Point or Multifunctional Hotspot with a Firewall, URL Tracking, Adblocker, and Bandwidth Manager.
+MyPublicWiFi is a user-friendly software that transforms your laptop, tablet, or PC into a Wi-Fi access point or multifunctional hotspot. Anyone within range can access the Internet via your shared network. It’s also an ideal solution for setting up a temporary access point in places like hotel rooms, meeting rooms, or at home. By enabling user authentication, customers are redirected to your login page, where they can authenticate using a access password, voucher code, user account, or by accepting the Terms of Use before gaining Internet access.
+
+The MyPublicWiFi firewall allows you to restrict user access to specific servers. You can also block certain Internet services (e.g., file-sharing / P2P programs) or social media networks (e.g., Facebook). MyPublicWiFi turns your PC into an ad-blocking router. Ad blockers are a powerful tool to save bandwidth and protect user privacy. The Bandwidth Manager enables you to control the download and upload speeds for your hotspot clients.
+
+MyPublicWiFi lets you track and log all visited URLs on your hotspot. Additionally, it supports port forwarding, is available in 19 languages, works without an internet connection, and supports "Hosted Network" and "WiFi Direct" on Windows 10/11.
+
+MyPublicWiFi is a smart all-in-one solution for secure and easily manageable WiFi hotspots – both private (e.g. at home or in the office) and public (e.g. in cafés, schools, hotels, etc.). Access can be provided free of charge or for a fee via a captive portal.
+
+MyPublicWiFi herunterladen
+MyPublicWiFi herunterladen
+Download MyPublicWiFi 31.3	
+MyPublicWiFi herunterladen
+Installation Guide
+
+Example 1:
+Use MyPublicWiFi as a Wi-Fi Router: Share your internet connection via Ethernet, Wi-Fi, DSL, 3G/HSDPA, or 4G/5G.
+Server Client
+
+Example 2:
+MyPublicWiFi as a Repeater: Boost your Wi-Fi range and enhance signal strength.
+Server Client
+
+Example 3:
+MyPublicWiFi in Bridging Mode: In this mode, MyPublicWiFi functions as a Wi-Fi access point.
+Server Client
+
+Example 4:
+MyPublicWiFi as a VPN: MyPublicWiFi supports all common VPN protocols (WireGuard, OpenVPN, IPSec/IKEv2, L2TP/IPSec, SSTP, PPTP), enabling you to share your VPN connection (e.g., NordVPN, ExpressVPN, Atlas VPN, Proton VPN, CyberGhost VPN) with any Wi-Fi device.
+Attention:
+Some VPN apps block DHCP traffic in the local network. As a result, clients no longer receive an IP address and cannot access the internet.
+
+Solutions:
+1st Solution: The only recommended and secure way to bypass this issue is to enable the “Allow LAN connections” or “Allow local network connections” option in your VPN app settings (e.g., Proton VPN, hide.me VPN).
+2nd Solution: Start VPN without an app. Instead of the provider app, use OpenVPN or WireGuard with the downloaded configuration file.
+3rd Solution: Set the preferred WiFi technology to “Hosted Network” or “Mobile Hotspot”. Assign a static IP address to the clients (e.g., IP: 192.168.5.100, Subnet: 255.255.255.0, Gateway/DNS: 192.168.5.1).
+Server Client
+
+Example 5:
+Use MyPublicWiFi without an internet connection: Facilitates local networking and data exchange between connected devices, even without an active internet connection.
+Server Client
+
+Example 6:
+MyPublicWiFi as a multifunctional hotspot: Set up a hotspot using your own external Wi-Fi access points, enabling you to connect game consoles or other network devices either wirelessly or via cable.
+Server Client
+
+
+Setting up a multifunctional hotspot requires several components and functions:
+An Ethernet (LAN) or Wi-Fi network card
+A Wi-Fi access point or Wi-Fi router
+A working internet connection (Ethernet, Wi-Fi, DSL, 3G/4G/5G/HSDPA/LTE)
+The access point should be statically configured as outlined below:
+If you are using a Wi-Fi router, ensure that the DHCP server is disabled.
+Example 7:
+MyPublicWiFi with multiple Wi-Fi access points: Enables the use of multiple access points to extend network coverage and ensure a stable connection for all devices.
+Server Client
+
+Example 8:
+MyPublicWiFi in Wireless Bridge Mode: Your PC must have two Wi-Fi network adapters.
+Server Client
+
+Example 9:
+Use MyPublicWiFi on a Raspberry Pi as a Wi-Fi Hotspot: The Raspberry Pi supports Windows 10/11 ARM, enabling you to install MyPublicWiFi and transform the mini PC into a powerful Wi-Fi hotspot.
+Server Client
+
+Example 10:
+Use MyPublicWiFi as a File Sharing Server: With MyPublicWiFi, you can easily share files (such as photos, music, videos, or documents) between your computer and other devices (smartphones, tablets, netbooks, PCs) – without the hassle of cables or extra apps! Simply scan the QR code shown in the program or enter the provided URL in your browser to access the file-sharing page.
+
+
+"MyPublicWiFi" vs. "Mobile Hotspot" - Compare Features
+ 	MyPublicWiFi	Mobile Hotspot
+Share Internet via Ethernet	 	 
+Share Internet via WiFi	 	 
+Share Internet via 3G/4G/5G	 	 
+Share a VPN connection	 	 
+WiFi Repeater Mode	 	 
+Bridge Mode	 	 
+Multifunctional Hotspot	 	 
+Wired Network Router	 	 
+Hotspot Without Internet Connection	 	 
+Hotspot Name with Emojis and Unicode	 	 
+Support for Unlimited Connected Devices	 	 
+Real-Time Network Usage Monitoring	 	 
+Customizable DHCP Settings	 	 
+Firewall	 	 
+Blocking of File Sharing / P2P	 	 
+URL Logging	 	 
+Ad Blocker	 	 
+Bandwidth Manager	 	 
+QR Code Support	 	 
+Port Forwarding	 	 
+UPnP Server	 	 
+User Authentication	 	 
+File Sharing Server	 	 
+Device Blacklisting	 	 
+How does MyPublicWiFi work?
+
+Set up and start a virtual WiFi
+This manager allows you to create and start your virtual Wi-Fi, granting your guests access to the internet and local network. WPA2-PSK with AES encryption ensures security, and the SSID and network key can easily be customized to suit your needs.
+ 
+
+Set up and start a multifunctional hotspot
+Using this manager, you can create and activate your multi-functional hotspot, enabling your guests or friends to access both the internet and local network through an external Wi-Fi access point.
+ 
+
+Network Configuration
+MyPublicWiFi supports various network configurations:
+Internet Connection Sharing (ICS)
+ Router Mode (DHCP and NAT Server)
+Network Bridge Mode (Bridging Mode)
+Wi-Fi Repeater Mode (Repeater)
+No Internet Sharing
+ 
+
+Connect to your Hotspot
+Your guests or friends can easily search for available Wi-Fi networks and connect to the Wi-Fi network you’ve created virtually.
+ 
+
+Stop your Hotspot
+You can stop your created hotspot at any time.
+ 
+
+Firewall
+The built-in firewall lets you limit network access and fully block specific internet services (e.g., file-sharing/P2P programs). Plus, a custom firewall lets you create tailored rules to allow or block specific internet services.
+ 
+
+Adblocker
+Ad blockers are a great way to save bandwidth and block intrusive ads and tracking. MyPublicWiFi features a filter that prevents ads and trackers throughout the entire local network.
+ 
+
+Social media networks
+MyPublicWiFi allows you to fully block access to social networks (e.g., Facebook, X-Twitter) according to your settings.
+ 
+
+Local network access
+Activate this option to block users from accessing the local network. This feature is particularly useful for public hotspot devices to safeguard the system against unauthorized changes.
+ 
+
+Internet access
+Activate this option to prevent users from accessing the internet.
+ 
+
+UPnP Protocol
+The UPnP (Universal Plug and Play) protocol enables the discovery and configuration of network devices (e.g., PCs, printers, internet gateways) within the local network. Activate this option to block the UPnP protocol across the entire network.
+ 
+
+Maximum Number of Devices
+Specify the maximum number of devices that can be connected to your hotspot concurrently.
+ 
+
+Monitor Visited Websites
+MyPublicWiFi logs all visited websites, including their full URLs, enabling you to track which client visited which URLs at any time.
+ 
+
+Bandwidth Manager
+Bandwidth defines the internet speed available to each guest. The Bandwidth Manager monitors and controls the internet speed (download and upload rate) for every hotspot client.
+ 
+
+Multilingual Interface
+MyPublicWiFi supports Unicode and is available in 19 languages.
+ 
+
+Port Forwarding / Gaming Mode
+MyPublicWiFi supports port forwarding, enabling you to use online games and other internet applications that require incoming connections. The setup can be done either manually or automatically through the integrated UPnP server. Note that port forwarding only works in Router Mode (NAT).
+ 
+
+User Authentication
+If activated, this option automatically redirects unauthenticated users to a login page on their first visit, where they can sign in with an access password, voucher code, user account, or by accepting the Terms and Conditions.
+ 
+
+Connected Devices
+MyPublicWiFi provides real-time information about the IP addresses, device names, MAC addresses (Media Access Control), current download/upload speeds, and session durations of all devices connected to the hotspot.
+ 
+
+Display Visited Websites
+This manager logs all visited URLs and displays them clearly, associating each URL with the respective client (IP/MAC address and device name). You can track which client has accessed which URLs at any time.
+ 
+
+Emoji and Unicode SSID
+MyPublicWiFi allows you to personalize your Wi-Fi name (SSID) and even the password using emojis and Unicode characters, creating a unique, modern hotspot that's easy to recognize.
+ 
+
+QR Code
+MyPublicWiFi automatically generates a Wi-Fi QR code, allowing devices to connect by scanning it with their camera—no need to manually enter a password. Just scan and go online instantly!
+ 
+
+Wi-Fi Direct Support
+MyPublicWiFi supports not only the classic "Hosted Network" but also "Wi-Fi Direct" and the "Mobile Hotspot" feature, both available from Windows 10/11.
+ 
+
+Dynamic bandwidth allocation
+MyPublicWiFi intelligently distributes the total available bandwidth (download/upload) evenly across all connected clients. The allocation dynamically adjusts in real time as devices join or leave the network, ensuring optimal, fair, and efficient use of network resources without the need for manual configuration.
+ 
+
+Device Blacklist
+With MyPublicWiFi, you can create a device blacklist to block unwanted users. Blacklisted clients won’t receive an IP address or internet access, ensuring they are effectively denied connection.
+ 
+
+File Sharing
+MyPublicWiFi allows you to effortlessly share files (such as photos, videos, and documents) between your computer (acting as a server) and connected devices (smartphones, tablets, PCs)—no cables or additional apps required. Simply scan the QR code displayed in the program or enter the provided URL in a browser to access the file-sharing web interface.
+ 
+
+Dark and Night Mode
+Dark mode switches the view to dark colors and is especially easy on the eyes in low light. Simply click the design button to switch between light and dark mode. Each click automatically changes the display to the other view.
+ 
+
+Device Logs
+Device logs store the connection time, connection duration, and data usage for each device. This allows you to track when and for how long a device was connected, making it easy to monitor data usage and device activity.
+ 
+
+Session Logs
+Session logs record every login, whether via a user account, a voucher code, or as a guest. The username, device name, connection duration and data usage are recorded. This allows you to see at any time who was connected and what usage occurred.
+ 
+
+Evaluations and Statistics
+MyPublicWiFi can display statistics in table form and graphically. Depending on the selected parameter, such as data volume or total duration, the evaluations can be shown. You can display them daily, weekly, quarterly or annually.
+ 
+How does user authentication work?
+
+Enable User Authentication
+Activate this option to secure access to your hotspot using one of the following authentication methods:
+
+Access Password (custom password)
+Voucher Code (access code)
+User Account (personal login credentials)
+Accept Terms and Conditions (legal confirmation required)
+ 
+
+Voucher Codes Management
+MyPublicWiFi displays all voucher codes in a well-organized table. You can create new code lists or edit and delete existing voucher codes using the menu in the top-right corner.
+ 
+
+Create Code List / Edit Voucher Code
+If you wish to edit a voucher code, first select a code account from the list and then click the “Edit Selected Voucher Code” button.
+If you would like to generate a new code list or expand an existing one, click the “Create New Voucher Code List” button.
+A window will then automatically open, where you can set the settings, duration, and bandwidth for this list or account.
+ 
+
+QR Login / Export / Print Voucher Codes
+If you wish to print a code list, first select a list from the available code list names, and then click the “Export List with QR Codes” button. The exported list will contain QR codes, allowing users to log in with a simple scan.
+ 
+
+User Management
+MyPublicWiFi displays all users in a well-organized table. Using the menu in the top-right corner, you can create new user accounts, as well as edit or delete existing ones.
+ 
+
+Create/Edit User Account
+If you wish to edit a user account, first select an account from the list and click the "Edit Selected User Account" button.
+To create a new user account, click the "Create New User Account" button.
+A window will then open, allowing you to configure the settings, duration, and bandwidth for the account.
+ 
+
+Login page
+The user connects to your Wi-Fi hotspot as usual and is automatically redirected to the login page when they first attempt to access a website. Depending on your settings, they must authenticate using an access password, voucher code, user account, or by accepting the Terms Of Use before internet access is granted.
+ 
+
+Successful Login
+Once the user has logged in successfully, the counter window will open, showing the remaining time and all relevant session details. The user can end the session at any time by clicking the 'Log Out' button.
+ 
+
+Recharge Account / Extend Session
+The server automatically disables access once the allocated time expires. However, the user can extend the session by entering a valid voucher code before the time runs out.
+ 
+
+Multilingual Login Page & Custom Design
+In addition to automatic language detection, users can manually choose their preferred language via a dropdown menu on the login page, which can be fully customized to align with your corporate identity, including the company logo, colors, and layout.
+ 
+Free Download
+MyPublicWiFi herunterlade
+MyPublicWiFi
+Share MyPublicWifi:
+Share on Facebook Tweet Share on Whatsapp Pin it Add to Pocket Share on LinkedIn Send email
+Follow MyPublicWifi:
+MyPublicWifi on Facebook MyPublicWifi on twitter MyPublicWifi on Instagram MyPublicWifi on Youtube
+Features
+Virtual WiFi Hotspot
+Multifunctional Hotspot
+Custom Network Naming
+Unlimited Hotspot Connections
+Share Internet from WiFi
+Share Internet from Ethernet
+Share Internet from 3G/4G/5G/LTE/USB
+Share Internet from VPN
+Internet Connection Sharing (ICS)
+Router Mode
+Bridging Mode
+WiFi Repeater Mode
+Use without Internet
+Custom DHCP Setting
+Port and service filter
+Firewall
+Blocking of file sharing
+URL Log Files
+Adblocker
+Bandwidth Manager
+Gaming Mode
+Emoji and Unicode SSID
+QR Code
+Port Forwarding
+User Authentication
+System Requirements
+Windows 7
+Windows 8
+Windows 10
+Windows 11
+Windows Server 2008 R2
+Windows Server 2012 R2
+Windows Server 2016
+Windows Server 2019
+Windows 32/64bit
+ 
+©All rights reserved.
+Legal   Terms of Service   Contact   Privacy   Refund Policy

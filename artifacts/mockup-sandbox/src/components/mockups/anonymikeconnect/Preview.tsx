@@ -1,29 +1,61 @@
 import { useMemo, useState } from "react";
 import {
+  BarChart3,
+  Ban,
+  Cable,
   ChevronDown,
   Check,
   Eye,
   EyeOff,
+  FileText,
+  Gauge,
   Globe2,
+  KeyRound,
+  ListFilter,
   Menu,
   MonitorSmartphone,
+  Network,
   QrCode,
   RefreshCw,
   Router,
+  Share2,
   Settings2,
   ShieldCheck,
+  SlidersHorizontal,
   Ticket,
   Users,
   Wifi,
   Zap,
 } from "lucide-react";
 
-type Page = "WLAN Hotspot" | "Connected Clients" | "Voucher Manager" | "Settings";
+type Page =
+  | "WLAN Hotspot"
+  | "Network Modes"
+  | "Connected Clients"
+  | "Bandwidth Manager"
+  | "Firewall & Adblocker"
+  | "URL Logs"
+  | "Authentication"
+  | "Voucher Manager"
+  | "Port Forwarding"
+  | "File Sharing"
+  | "DHCP & NAT"
+  | "Statistics"
+  | "Settings";
 
 const navItems: Array<{ label: Page; icon: typeof Wifi }> = [
   { label: "WLAN Hotspot", icon: Wifi },
+  { label: "Network Modes", icon: Network },
   { label: "Connected Clients", icon: Users },
+  { label: "Bandwidth Manager", icon: Gauge },
+  { label: "Firewall & Adblocker", icon: Ban },
+  { label: "URL Logs", icon: ListFilter },
+  { label: "Authentication", icon: KeyRound },
   { label: "Voucher Manager", icon: Ticket },
+  { label: "Port Forwarding", icon: Cable },
+  { label: "File Sharing", icon: Share2 },
+  { label: "DHCP & NAT", icon: SlidersHorizontal },
+  { label: "Statistics", icon: BarChart3 },
   { label: "Settings", icon: Settings2 },
 ];
 
@@ -133,6 +165,140 @@ function SelectField({ label, value }: { label: string; value: string }) {
   );
 }
 
+function ToggleRow({ label, detail, enabled = true }: { label: string; detail: string; enabled?: boolean }) {
+  const [checked, setChecked] = useState(enabled);
+  return (
+    <button onClick={() => setChecked((current) => !current)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "14px 0", border: 0, borderBottom: "1px solid #123e55", background: "transparent", color: "#e8f4f8", textAlign: "left", cursor: "pointer" }}>
+      <span>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 800 }}>{label}</span>
+        <span style={{ display: "block", marginTop: 4, color: "#789aaa", fontSize: 11 }}>{detail}</span>
+      </span>
+      <span style={{ width: 38, height: 21, flexShrink: 0, display: "flex", justifyContent: checked ? "flex-end" : "flex-start", alignItems: "center", padding: 3, boxSizing: "border-box", borderRadius: 99, background: checked ? "#1b9ce8" : "#274351", transition: "all .18s ease" }}>
+        <span style={{ width: 15, height: 15, borderRadius: 99, background: "#eaf7fb", boxShadow: "0 1px 3px #00111c88" }} />
+      </span>
+    </button>
+  );
+}
+
+function FeaturePage({ page }: { page: Page }) {
+  const panel = { border: "1px solid #123e55", background: "#0a2638", borderRadius: 13, padding: 18 };
+  const subheading = { color: "#6cb6d8", fontSize: 10, fontWeight: 900, letterSpacing: "0.1em" };
+
+  if (page === "Network Modes") {
+    const modes = [
+      ["Router Mode (NAT)", "Share Ethernet, Wi-Fi, or VPN through a managed gateway.", Router, true],
+      ["Wi-Fi Repeater", "Extend an existing wireless network with a second adapter.", Wifi, false],
+      ["Bridge Mode", "Connect clients directly to an external access point.", Cable, false],
+      ["No Internet", "Create an isolated local network for device-to-device sharing.", Network, false],
+    ] as const;
+    return (
+      <div style={{ display: "grid", gap: 14 }}>
+        <section style={panel}>
+          <div style={{ ...subheading, marginBottom: 14 }}>NETWORK CONFIGURATION</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+            {modes.map(([name, detail, Icon, selected]) => (
+              <button key={name} style={{ minHeight: 118, padding: 16, borderRadius: 10, border: selected ? "1px solid #35b0f2" : "1px solid #204d64", background: selected ? "#103f59" : "#071f30", color: "#eef7fb", textAlign: "left", cursor: "pointer", boxShadow: selected ? "inset 3px 0 #35b0f2" : "none" }}>
+                <Icon size={19} color={selected ? "#5bc5fb" : "#86a7b6"} />
+                <div style={{ marginTop: 14, fontSize: 13, fontWeight: 900 }}>{name}</div>
+                <div style={{ marginTop: 5, color: "#789aaa", fontSize: 11, lineHeight: 1.45 }}>{detail}</div>
+              </button>
+            ))}
+          </div>
+        </section>
+        <section style={{ ...panel, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
+          {[["UPSTREAM", "Ethernet", "192.168.1.121"], ["GATEWAY", "Router", "192.168.10.1"], ["CLIENT POOL", "DHCP", "192.168.10.20 – 240"]].map(([label, value, detail]) => (
+            <div key={label}><div style={subheading}>{label}</div><div style={{ marginTop: 7, fontSize: 14, fontWeight: 900 }}>{value}</div><div style={{ marginTop: 3, color: "#789aaa", fontSize: 11 }}>{detail}</div></div>
+          ))}
+        </section>
+      </div>
+    );
+  }
+
+  if (page === "Bandwidth Manager") {
+    return (
+      <div style={{ display: "grid", gridTemplateColumns: "1.05fr .95fr", gap: 14 }}>
+        <section style={panel}>
+          <div style={{ ...subheading, marginBottom: 10 }}>TOTAL BANDWIDTH</div>
+          <div style={{ display: "flex", alignItems: "end", gap: 8, marginBottom: 18 }}><span style={{ fontSize: 34, fontWeight: 900 }}>100</span><span style={{ color: "#8aaabd", paddingBottom: 6, fontSize: 12 }}>Mbit/s available</span></div>
+          <div style={{ height: 8, background: "#123e55", borderRadius: 99, overflow: "hidden" }}><div style={{ width: "63%", height: "100%", background: "linear-gradient(90deg, #1b9ce8, #77d2ff)", borderRadius: 99 }} /></div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, color: "#789aaa", fontSize: 11 }}><span>63 Mbit/s in use</span><span>37 Mbit/s free</span></div>
+          <div style={{ marginTop: 24 }}><ToggleRow label="Enable bandwidth manager" detail="Apply traffic policies to all hotspot clients." /></div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 14 }}><Field label="Default download" value="3 Mbit/s" /><Field label="Default upload" value="1 Mbit/s" /></div>
+        </section>
+        <section style={panel}>
+          <div style={{ ...subheading, marginBottom: 12 }}>CLIENT POLICIES</div>
+          {[
+            ["Android-S25-Ultra", "3 / 1 Mbit/s", "42%"],
+            ["MacBook-Air", "10 / 5 Mbit/s", "18%"],
+            ["Pixel-8-Pro", "3 / 1 Mbit/s", "8%"],
+          ].map(([name, speed, usage]) => (
+            <div key={name} style={{ padding: "14px 0", borderBottom: "1px solid #123e55" }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 800 }}><span>{name}</span><span style={{ color: "#70c8f5" }}>{usage}</span></div><div style={{ display: "flex", justifyContent: "space-between", marginTop: 7, color: "#789aaa", fontSize: 11 }}><span>{speed}</span><span>Individual policy</span></div></div>
+          ))}
+        </section>
+      </div>
+    );
+  }
+
+  if (page === "Firewall & Adblocker") {
+    return (
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        <section style={panel}><div style={{ ...subheading, marginBottom: 4 }}>NETWORK PROTECTION</div><ToggleRow label="Enable firewall" detail="Filter guest traffic before it reaches the internet." /><ToggleRow label="Block file sharing / P2P" detail="Block common peer-to-peer protocols." /><ToggleRow label="Block social networks" detail="Apply the social network blocklist to guests." /><ToggleRow label="Block local network access" detail="Keep public hotspot clients isolated." /></section>
+        <section style={panel}><div style={{ ...subheading, marginBottom: 4 }}>ADBLOCKER & SERVICES</div><ToggleRow label="Ad and tracker filtering" detail="Reduce ads and tracking requests for all clients." /><ToggleRow label="Block UPnP discovery" detail="Prevent automatic device discovery on the hotspot." enabled={false} /><ToggleRow label="Allow internet access" detail="Disable this to run a local-only network." /><div style={{ marginTop: 16, padding: 13, borderRadius: 8, background: "#10354a", color: "#9ec3d2", fontSize: 11, lineHeight: 1.5 }}><ShieldCheck size={15} color="#8bd44f" style={{ verticalAlign: "middle", marginRight: 7 }} />Policy changes apply to new and active sessions.</div></section>
+      </div>
+    );
+  }
+
+  if (page === "URL Logs") {
+    const logs = [
+      ["10:42:19", "Guest", "Android-S25-Ultra", "www.google.com"],
+      ["10:42:16", "Guest", "Android-S25-Ultra", "s.ntv.io"],
+      ["10:41:54", "Guest", "MacBook-Air", "api.github.com"],
+      ["10:40:31", "Guest", "Pixel-8-Pro", "www.youtube.com"],
+      ["10:39:18", "Guest", "MacBook-Air", "images.unsplash.com"],
+    ];
+    return <section style={panel}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 15 }}><div style={{ display: "flex", alignItems: "center", gap: 9 }}><FileText size={18} color="#58bdf2" /><span style={{ fontSize: 14, fontWeight: 800 }}>Visited websites</span></div><div style={{ display: "flex", gap: 9 }}><span style={{ padding: "8px 12px", border: "1px solid #24566f", borderRadius: 7, color: "#9cbac5", fontSize: 11 }}>Today <ChevronDown size={13} style={{ verticalAlign: "middle", marginLeft: 5 }} /></span><button style={{ padding: "8px 12px", border: "1px solid #24566f", borderRadius: 7, background: "#10364c", color: "#c0e3ef", fontSize: 11, fontWeight: 800 }}>EXPORT CSV</button></div></div><div style={{ overflow: "hidden", border: "1px solid #16455d", borderRadius: 8 }}><div style={{ display: "grid", gridTemplateColumns: ".8fr .7fr 1.4fr 1.4fr", padding: "12px 14px", background: "#10364c", color: "#6cb6d8", fontSize: 10, fontWeight: 900, letterSpacing: "0.1em" }}><div>ACCESS TIME</div><div>USER</div><div>DEVICE</div><div>URL</div></div>{logs.map((row) => <div key={`${row[0]}-${row[3]}`} style={{ display: "grid", gridTemplateColumns: ".8fr .7fr 1.4fr 1.4fr", padding: "15px 14px", borderTop: "1px solid #123e55", color: "#dcecf2", fontSize: 12 }}><div>{row[0]}</div><div style={{ color: "#91afbc" }}>{row[1]}</div><div>{row[2]}</div><div style={{ color: "#83c7eb" }}>{row[3]}</div></div>)}</div></section>;
+  }
+
+  if (page === "Authentication") {
+    return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}><section style={panel}><div style={{ ...subheading, marginBottom: 4 }}>LOGIN METHODS</div><ToggleRow label="Require authentication" detail="Redirect new clients to the captive portal." /><ToggleRow label="Access password" detail="Allow a shared password on the login page." /><ToggleRow label="Voucher codes" detail="Use time-limited guest access codes." /><ToggleRow label="User accounts" detail="Give repeat guests a personal login." enabled={false} /><ToggleRow label="Accept terms of use" detail="Require legal confirmation before access." /></section><section style={panel}><div style={{ ...subheading, marginBottom: 15 }}>PORTAL DESIGN</div><div style={{ height: 112, borderRadius: 9, border: "1px solid #2b617b", background: "linear-gradient(135deg, #0e3b57, #071f30)", padding: 16, boxSizing: "border-box" }}><div style={{ color: "#5ac1f7", fontSize: 10, fontWeight: 900, letterSpacing: "0.13em" }}>ANONYMIKECONNECT</div><div style={{ marginTop: 12, fontSize: 15, fontWeight: 900 }}>Welcome to the network</div><div style={{ marginTop: 5, color: "#789aaa", fontSize: 10 }}>Voucher login • English</div></div><button style={{ marginTop: 15, height: 38, width: "100%", border: "1px solid #2b617b", borderRadius: 7, background: "#10364c", color: "#b9dcea", fontSize: 11, fontWeight: 800 }}>CUSTOMIZE LOGIN PAGE</button></section></div>;
+  }
+
+  if (page === "Port Forwarding") {
+    const rules = [["Minecraft server", "TCP", "25565", "192.168.10.24", "Enabled"], ["Web dashboard", "TCP", "443", "192.168.10.25", "Enabled"]];
+    return <section style={panel}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 15 }}><div style={{ display: "flex", gap: 9, alignItems: "center" }}><Cable size={18} color="#58bdf2" /><span style={{ fontSize: 14, fontWeight: 800 }}>Port forwarding rules</span></div><button style={{ padding: "9px 13px", border: 0, borderRadius: 7, background: "#1b9ce8", color: "white", fontSize: 11, fontWeight: 900 }}>ADD RULE</button></div><div style={{ border: "1px solid #16455d", borderRadius: 8, overflow: "hidden" }}><div style={{ display: "grid", gridTemplateColumns: "1.4fr .7fr .7fr 1.1fr .8fr", padding: "12px 14px", background: "#10364c", color: "#6cb6d8", fontSize: 10, fontWeight: 900, letterSpacing: "0.1em" }}><div>NAME</div><div>PROTOCOL</div><div>PORT</div><div>DESTINATION</div><div>STATUS</div></div>{rules.map((rule) => <div key={rule[0]} style={{ display: "grid", gridTemplateColumns: "1.4fr .7fr .7fr 1.1fr .8fr", padding: "16px 14px", borderTop: "1px solid #123e55", color: "#dcecf2", fontSize: 12 }}><div>{rule[0]}</div><div>{rule[1]}</div><div>{rule[2]}</div><div>{rule[3]}</div><div style={{ color: "#9ee77b", fontWeight: 800 }}>{rule[4]}</div></div>)}</div><div style={{ marginTop: 13, color: "#789aaa", fontSize: 11 }}>Port forwarding is available in Router Mode (NAT). UPnP can create rules automatically for supported apps.</div></section>;
+  }
+
+  if (page === "File Sharing") {
+    return <div style={{ display: "grid", gridTemplateColumns: "1fr .9fr", gap: 14 }}><section style={panel}><div style={{ ...subheading, marginBottom: 14 }}>LOCAL FILE SERVER</div><div style={{ display: "flex", alignItems: "center", gap: 14, padding: 16, background: "#10364c", borderRadius: 9 }}><Share2 size={22} color="#5bc5fb" /><div><div style={{ fontSize: 13, fontWeight: 900 }}>File sharing is enabled</div><div style={{ color: "#789aaa", fontSize: 11, marginTop: 4 }}>Guests can browse approved files on the local network.</div></div></div><div style={{ marginTop: 18 }}><Field label="Share URL" value="http://192.168.10.1:9090/share" /><button style={{ marginTop: 12, height: 38, padding: "0 14px", border: "1px solid #2b617b", borderRadius: 7, background: "#10364c", color: "#c0e3ef", fontSize: 11, fontWeight: 800 }}>OPEN SHARED FOLDER</button></div></section><section style={panel}><div style={{ ...subheading, marginBottom: 14 }}>SHARED CONTENT</div>{["Welcome.pdf", "Guest-WiFi-Guide.png", "House-Rules.docx"].map((file) => <div key={file} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "13px 0", borderBottom: "1px solid #123e55", color: "#dcecf2", fontSize: 12 }}><span style={{ display: "flex", alignItems: "center", gap: 9 }}><FileText size={15} color="#82b3c5" />{file}</span><span style={{ color: "#789aaa", fontSize: 11 }}>Shared</span></div>)}</section></div>;
+  }
+
+  if (page === "DHCP & NAT") {
+    return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}><section style={panel}><div style={{ ...subheading, marginBottom: 14 }}>DHCP SERVER</div><ToggleRow label="Enable DHCP server" detail="Automatically assign IP addresses to guests." /><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 14 }}><Field label="Gateway" value="192.168.10.1" /><Field label="Subnet mask" value="255.255.255.0" /><Field label="Pool start" value="192.168.10.20" /><Field label="Pool end" value="192.168.10.240" /></div></section><section style={panel}><div style={{ ...subheading, marginBottom: 14 }}>NAT & DNS</div><ToggleRow label="Enable NAT routing" detail="Translate guest traffic through the upstream adapter." /><SelectField label="Primary DNS" value="Gateway captive DNS" /><div style={{ marginTop: 12 }}><SelectField label="Fallback DNS" value="1.1.1.1  •  Cloudflare" /></div></section></div>;
+  }
+
+  if (page === "Statistics") {
+    return <div style={{ display: "grid", gap: 14 }}><div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>{[["DATA USED", "4.8 GB", "#59c5a5"], ["SESSION TIME", "06h 42m", "#70b8f3"], ["PEAK CLIENTS", "12", "#c39af7"], ["BLOCKED ADS", "8,421", "#f0bd6a"]].map(([label, value, color]) => <div key={label} style={{ ...panel, padding: 16 }}><div style={{ ...subheading, color }}>{label}</div><div style={{ marginTop: 10, fontSize: 23, fontWeight: 900 }}>{value}</div><div style={{ marginTop: 4, color: "#789aaa", fontSize: 11 }}>Since hotspot start</div></div>)}</div><section style={panel}><div style={{ ...subheading, marginBottom: 17 }}>BANDWIDTH USAGE / LAST 60 MINUTES</div><div style={{ height: 150, display: "flex", alignItems: "end", gap: 7, borderBottom: "1px solid #24566f", background: "repeating-linear-gradient(to bottom, transparent, transparent 37px, #123e55 38px)" }}>{[32, 45, 38, 54, 47, 72, 61, 78, 64, 82, 74, 88, 68, 94, 77, 83, 98, 79, 68, 86, 73, 91].map((height, index) => <div key={index} style={{ flex: 1, height: `${height}%`, minWidth: 7, borderRadius: "4px 4px 0 0", background: index > 15 ? "linear-gradient(180deg, #64c9fa, #1b9ce8)" : "#22658a" }} />)}</div><div style={{ display: "flex", justifyContent: "space-between", color: "#789aaa", fontSize: 10, marginTop: 8 }}><span>10:00</span><span>10:15</span><span>10:30</span><span>10:45</span><span>11:00</span></div></section></div>;
+  }
+
+  return null;
+}
+
+const pageDescriptions: Record<Page, string> = {
+  "WLAN Hotspot": "Share an internet connection and control guest access from this computer.",
+  "Network Modes": "Switch between router, repeater, bridge, and local-only hotspot configurations.",
+  "Connected Clients": "Devices currently visible on the hotspot gateway.",
+  "Bandwidth Manager": "Control download and upload speeds for the whole hotspot or individual clients.",
+  "Firewall & Adblocker": "Protect guests and the upstream connection with network policies and filtering.",
+  "URL Logs": "Review visited websites and export access records for the selected period.",
+  "Authentication": "Choose how guests sign in and customize the captive portal experience.",
+  "Voucher Manager": "Create time-limited access codes for the captive portal.",
+  "Port Forwarding": "Route selected ports to local services and gaming devices.",
+  "File Sharing": "Share approved files with connected devices without extra apps.",
+  "DHCP & NAT": "Configure the guest address pool, routing, and DNS behavior.",
+  "Statistics": "Review traffic, session, client, and filtering activity over time.",
+  Settings: "Local defaults and operational notes for Windows deployment.",
+};
+
 export function Preview() {
   const [page, setPage] = useState<Page>("WLAN Hotspot");
   const [active, setActive] = useState(true);
@@ -153,7 +319,7 @@ export function Preview() {
 
   return (
     <div style={styles.shell}>
-      <aside style={styles.sidebar}>
+      <aside style={{ ...styles.sidebar, overflowY: "auto" }}>
         <div style={{ padding: "0 14px 30px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9, color: "#f7fbfd", fontWeight: 900, letterSpacing: "0.03em", fontSize: 19 }}>
             <span style={{ width: 27, height: 27, display: "grid", placeItems: "center", background: "#1b9ce8", borderRadius: 7 }}>
@@ -207,12 +373,7 @@ export function Preview() {
             <h1 style={{ margin: "8px 0 5px", fontSize: 29, lineHeight: 1.1, letterSpacing: "-0.03em" }}>
               {page === "WLAN Hotspot" ? "WLAN Hotspot" : page}
             </h1>
-            <p style={{ margin: 0, color: "#89a7b6", fontSize: 13 }}>
-              {page === "WLAN Hotspot" && "Share an internet connection and control guest access from this computer."}
-              {page === "Connected Clients" && "Devices currently visible on the hotspot gateway."}
-              {page === "Voucher Manager" && "Create time-limited access codes for the captive portal."}
-              {page === "Settings" && "Local defaults and operational notes for Windows deployment."}
-            </p>
+            <p style={{ margin: 0, color: "#89a7b6", fontSize: 13 }}>{pageDescriptions[page]}</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 9, color: active ? "#9de46f" : "#8095a0", fontSize: 12, fontWeight: 700, paddingTop: 7 }}>
             <span style={{ width: 8, height: 8, borderRadius: 99, background: active ? "#8bd44f" : "#657985", boxShadow: active ? "0 0 0 4px #8bd44f20" : "none" }} />
@@ -247,6 +408,12 @@ export function Preview() {
                 />
               </div>
             </section>
+
+            <div style={{ display: "flex", gap: 7, marginTop: 15, overflowX: "auto", paddingBottom: 2 }}>
+              {["Router Mode (NAT)", "Wi-Fi Repeater", "Bridge Mode", "No Internet"].map((mode, index) => (
+                <button key={mode} style={{ flexShrink: 0, padding: "9px 13px", borderRadius: 7, border: index === 0 ? "1px solid #3db5f4" : "1px solid #204d64", background: index === 0 ? "#103f59" : "#071f30", color: index === 0 ? "#dff5fc" : "#83a4b3", fontSize: 11, fontWeight: 800 }}>{mode}</button>
+              ))}
+            </div>
 
             <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
               <button
@@ -287,6 +454,10 @@ export function Preview() {
               ))}
             </section>
           </>
+        )}
+
+        {page !== "WLAN Hotspot" && page !== "Connected Clients" && page !== "Voucher Manager" && page !== "Settings" && (
+          <FeaturePage page={page} />
         )}
 
         {page === "Connected Clients" && (
