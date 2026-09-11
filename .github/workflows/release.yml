@@ -74,6 +74,9 @@ jobs:
           path: dist/*.exe
           if-no-files-found: error
 
+      # The GitHub Release asset is the complete Windows executable users download.
+      # GitHub serves it with download headers, so browsers save it to Downloads.
+
       - name: Create/update GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
