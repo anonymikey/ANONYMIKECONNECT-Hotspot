@@ -81,6 +81,7 @@
         <div class="line"><div class="label">Version</div><div id="version" class="value">—</div></div>
         <div class="line"><div class="label">SHA256</div><div id="sha" class="value">—</div></div>
         <div class="line"><div class="label">Size</div><div id="size" class="value">—</div></div>
+        <div class="line"><div class="label">Released</div><div id="published" class="value">—</div></div>
         <div class="line"><div class="label">Release notes</div></div>
         <div id="notes" class="notes">—</div>
 
@@ -153,6 +154,7 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
     const notesEl = document.getElementById('notes');
     const shaEl = document.getElementById('sha');
     const sizeEl = document.getElementById('size');
+    const publishedEl = document.getElementById('published');
     const downloadBtn = document.getElementById('downloadBtn');
     const statusEl = document.getElementById('status');
 
@@ -173,6 +175,17 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
         statusEl.textContent = 'Copy failed — select the checksum text manually.';
       }
     });
+
+    function formatPublished(iso){
+      if (!iso) return '—';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '—';
+      // Show the visitor's local date/time plus the timezone label.
+      return d.toLocaleString(undefined, {
+        year:'numeric', month:'short', day:'numeric',
+        hour:'2-digit', minute:'2-digit', timeZoneName:'short'
+      });
+    }
 
     function humanFileSize(bytes){
       if (!bytes && bytes !== 0) return '—';
@@ -244,6 +257,7 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
       notesEl.textContent = meta.notes || '—';
       shaEl.textContent = meta.sha256 || '—';
       sizeEl.textContent = meta.size ? humanFileSize(meta.size) : '—';
+      publishedEl.textContent = formatPublished(meta.publishedAt);
     }
 
     function markUnpublished(message){
@@ -251,6 +265,7 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
       notesEl.textContent = 'No release has been published from this repository yet. Once CI publishes a release, the version, checksum, and download will appear here automatically.';
       shaEl.textContent = '—';
       sizeEl.textContent = '—';
+      publishedEl.textContent = '—';
       disableDownload();
       statusEl.textContent = message;
       localArea.style.display = 'block';
