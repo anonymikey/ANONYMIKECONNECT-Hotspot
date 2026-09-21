@@ -36,7 +36,10 @@ if (-not $SkipBuild) {
 
         $entry = "anonymikeconnect/run_anonymikeconnect.py"
         Write-Host "Using entrypoint: $entry"
-        pyinstaller --onefile --clean --noconfirm --name $Version $entry
+        Write-Host "Verifying hidden import: anonymikeconnect.hotspot"
+        pyinstaller --onefile --clean --noconfirm --name $Version `
+            --hidden-import anonymikeconnect.hotspot `
+            $entry
 
         if (-not (Test-Path $exePath)) {
             throw "Build failed: $exePath not found"
@@ -63,13 +66,20 @@ Write-Host "Size:   $size"
 # and launching it on a headless CI runner just blocks until timeout.
 
 # Write release metadata into the portal folder (the file the web page fetches)
+$existingMeta = if (Test-Path $metaPath) {
+    Get-Content $metaPath -Raw | ConvertFrom-Json
+} else { $null }
 $releaseMeta = [ordered]@{
-    version = $Version
-    file    = "$Version.exe"
-    url     = ""
-    sha256  = $sha256
-    size    = $size
-    notes   = "Windows build published by CI ($Version)."
+    version           = $Version
+    ssidName          = if ($existingMeta -and $existingMeta.ssidName) { $existingMeta.ssidName } else { "T.S COREBAND" }
+    authMode          = if ($existingMeta -and $existingMeta.authMode) { $existingMeta.authMode } else { "OPEN_CAPTIVE" }
+    localGatewayIp    = if ($existingMeta -and $existingMeta.localGatewayIp) { $existingMeta.localGatewayIp } else { "192.168.10.1" }
+    portalRedirectUrl = if ($existingMeta -and $existingMeta.portalRedirectUrl) { $existingMeta.portalRedirectUrl } else { "https://vercel.app" }
+    file              = "$Version.exe"
+    url               = ""
+    sha256            = $sha256
+    size              = $size
+    notes             = "Windows build published by CI ($Version)."
 }
 $releaseMeta | ConvertTo-Json | Set-Content -Encoding UTF8 $metaPath
 

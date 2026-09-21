@@ -35,8 +35,12 @@ class HotspotConfig:
 class HotspotController:
     """Fetch static release metadata and control Windows Mobile Hotspot."""
 
-    def __init__(self, metadata_url: str = "https://vercel.app/release.json") -> None:
-        self.metadata_url = metadata_url
+    PRODUCTION_CONFIG_URL = "https://vercel.app/release.json"
+
+    def __init__(self, config_url: str | None = None, metadata_url: str | None = None) -> None:
+        # Keep production as the safe default while allowing local test fixtures.
+        self.config_url = config_url or metadata_url or self.PRODUCTION_CONFIG_URL
+        self.metadata_url = self.config_url
         self.config: HotspotConfig | None = None
         self._running = False
 
