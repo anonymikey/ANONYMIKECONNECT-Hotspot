@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
+import logging
 import subprocess
 from dataclasses import dataclass
+from urllib.error import HTTPError, URLError
 from typing import Any
 from urllib.request import Request, urlopen
 
@@ -36,6 +38,14 @@ class HotspotController:
     """Fetch static release metadata and control Windows Mobile Hotspot."""
 
     PRODUCTION_CONFIG_URL = "https://vercel.app/release.json"
+    DEFAULT_CONFIG = {
+        "version": "1.0.0",
+        "ssidName": "T.S COREBAND",
+        "authMode": "OPEN_CAPTIVE",
+        "localGatewayIp": "192.168.10.1",
+        "portalRedirectUrl": "https://vercel.app",
+    }
+
 
     def __init__(self, config_url: str | None = None, metadata_url: str | None = None) -> None:
         # Keep production as the safe default while allowing local test fixtures.
@@ -45,13 +55,20 @@ class HotspotController:
         self._running = False
 
     def fetch_config(self) -> HotspotConfig:
-        request = Request(self.metadata_url, headers={"Accept": "application/json"})
-        with urlopen(request, timeout=8) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-        if not isinstance(payload, dict):
-            raise ValueError("Hotspot metadata must be a JSON object")
-        self.config = HotspotConfig.from_payload(payload)
-        return self.config
+        try:
+            request = Request(self.metadata_url, headers={"Accept": "application/json"})
+            with urlopen(request, timeout=8) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            if not isinstance(payload, dict):
+                raise ValueError("Hotspot metadata must be a JSON object")
+            self.config = HotspotConfig.from_payload(payload)
+            return self.config
+        except (HTTPError, URLError, TimeoutError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+            logging.getLogger(__name__).warning(
+                "Remote release metadata unavailable (%s); using local default configuration.", exc
+            )
+            self.config = HotspotConfig.from_payload(self.DEFAULT_CONFIG)
+            return self.config
 
     def _run_powershell(self, script: str) -> str:
         completed = subprocess.run(
