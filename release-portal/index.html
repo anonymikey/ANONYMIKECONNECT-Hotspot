@@ -58,6 +58,24 @@
 
   .row{display:flex;gap:12px;align-items:center}
   .muted{color:var(--muted)}
+  .metadata-panel{margin-top:18px;padding:16px;border:1px solid rgba(79,156,255,.16);border-radius:10px;background:rgba(2,16,37,.42)}
+  .metadata-panel h4{margin:0}
+  .metadata-state{font-size:.75rem;color:#8ed0ff;text-transform:uppercase;letter-spacing:.08em}
+  .metadata-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+  .metadata-form label{display:grid;gap:6px;color:var(--muted);font-size:.78rem;letter-spacing:.02em}
+  .metadata-form input,.metadata-form select{width:100%;padding:10px 11px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#061329;color:#eaf2ff;font:inherit;outline:none}
+  .metadata-form input:focus,.metadata-form select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,156,255,.12)}
+  .wide{grid-column:1/-1}
+  .metadata-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:2px}
+  .toggle{display:flex!important;grid-template-columns:none!important;align-items:center;gap:9px!important;cursor:pointer;color:#dceaff!important}
+  .toggle input{position:absolute;opacity:0;width:1px;height:1px}
+  .toggle-track{width:36px;height:20px;border-radius:999px;background:#26354e;border:1px solid rgba(255,255,255,.12);position:relative;transition:.2s}
+  .toggle-track::after{content:'';position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:#8291a8;transition:.2s}
+  .toggle input:checked + .toggle-track{background:rgba(79,156,255,.35);border-color:var(--accent)}
+  .toggle input:checked + .toggle-track::after{transform:translateX(16px);background:#fff}
+  .metadata-form.is-disabled{opacity:.45}.metadata-form.is-disabled input,.metadata-form.is-disabled select{pointer-events:none}
+  @media (max-width:600px){.metadata-form{grid-template-columns:1fr}.wide{grid-column:auto}.metadata-actions{align-items:flex-start;flex-direction:column}}
+
 
   .small{font-size:.9rem}
 
@@ -131,8 +149,25 @@ Get-FileHash ANONYMIKECONNECTV1.0.exe -Algorithm SHA256
 <strong>macOS / Linux:</strong>
 shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
 
-          <h4 style="margin-top:14px">Manual release metadata</h4>
-          <p class="muted small">If your CI hasn't published a release.json, you can select an installer and the page will compute SHA256 and size locally for testing.</p>
+          <section class="metadata-panel" aria-labelledby="metadataTitle">
+            <div class="section-title">
+              <h4 id="metadataTitle">Manual release metadata</h4>
+              <span id="metadataStatus" class="metadata-state">Loaded</span>
+            </div>
+            <p class="muted small">Edit the static network configuration locally, then export a ready-to-commit <code>release.json</code> file.</p>
+            <form id="metadataForm" class="metadata-form">
+              <label>Version<input id="metadataVersion" name="version" type="text" value="1.0.0" required /></label>
+              <label>SSID name<input id="metadataSsid" name="ssidName" type="text" value="T.S COREBAND" required /></label>
+              <label>Auth mode<select id="metadataAuth" name="authMode"><option value="OPEN_CAPTIVE">OPEN_CAPTIVE</option><option value="OPEN">OPEN</option><option value="WPA2">WPA2</option></select></label>
+              <label>Local gateway IP<input id="metadataGateway" name="localGatewayIp" type="text" value="192.168.10.1" inputmode="decimal" required /></label>
+              <label class="wide">Portal redirect URL<input id="metadataRedirect" name="portalRedirectUrl" type="url" value="https://vercel.app" required /></label>
+              <div class="metadata-actions wide">
+                <label class="toggle"><input id="metadataEnabled" type="checkbox" checked /><span class="toggle-track" aria-hidden="true"></span><span>Enable static metadata</span></label>
+                <button id="exportMetadata" class="btn" type="button">Export release.json</button>
+              </div>
+            </form>
+            <p id="metadataHint" class="muted small" role="status" aria-live="polite">Changes stay in this browser until you export the file.</p>
+          </section>
 
         </div>
 
@@ -163,6 +198,19 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
     const drop = document.getElementById('drop');
     const fileInput = document.getElementById('fileInput');
     const copyShaBtn = document.getElementById('copySha');
+    const metadataForm = document.getElementById('metadataForm');
+    const metadataStatus = document.getElementById('metadataStatus');
+    const metadataHint = document.getElementById('metadataHint');
+    const metadataEnabled = document.getElementById('metadataEnabled');
+    const exportMetadataBtn = document.getElementById('exportMetadata');
+    const metadataFields = {
+      version: document.getElementById('metadataVersion'),
+      ssidName: document.getElementById('metadataSsid'),
+      authMode: document.getElementById('metadataAuth'),
+      localGatewayIp: document.getElementById('metadataGateway'),
+      portalRedirectUrl: document.getElementById('metadataRedirect')
+    };
+    let currentMetadata = {};
     let currentSha = '';
 
     copyShaBtn.addEventListener('click', async () => {
@@ -253,12 +301,42 @@ shasum -a 256 ANONYMIKECONNECTV1.0.exe</pre>
     }
 
     function applyMetadata(meta){
+      currentMetadata = meta || {};
       versionEl.textContent = meta.version || 'Not published yet';
       notesEl.textContent = meta.notes || '—';
       shaEl.textContent = meta.sha256 || '—';
       sizeEl.textContent = meta.size ? humanFileSize(meta.size) : '—';
       publishedEl.textContent = formatPublished(meta.publishedAt);
+      Object.keys(metadataFields).forEach(key => {
+        if (meta[key] !== undefined) metadataFields[key].value = meta[key];
+      });
+      metadataStatus.textContent = 'Loaded';
     }
+
+    function getEditableMetadata(){
+      return Object.fromEntries(Object.entries(metadataFields).map(([key, field]) => [key, field.value.trim()]));
+    }
+
+    function exportMetadata(){
+      if (!metadataEnabled.checked || !metadataForm.reportValidity()) return;
+      const payload = { ...currentMetadata, ...getEditableMetadata() };
+      const blob = new Blob([JSON.stringify(payload, null, 2) + '\\n'], { type: 'application/json' });
+      const href = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = href;
+      link.download = 'release.json';
+      link.click();
+      URL.revokeObjectURL(href);
+      metadataStatus.textContent = 'Exported';
+      metadataHint.textContent = 'release.json downloaded — replace the file in release-portal/ and commit it to your repository.';
+    }
+
+    exportMetadataBtn.addEventListener('click', exportMetadata);
+    metadataEnabled.addEventListener('change', () => {
+      metadataForm.classList.toggle('is-disabled', !metadataEnabled.checked);
+      metadataStatus.textContent = metadataEnabled.checked ? 'Enabled' : 'Disabled';
+      metadataHint.textContent = metadataEnabled.checked ? 'Changes stay in this browser until you export the file.' : 'Static metadata is disabled for export.';
+    });
 
     function markUnpublished(message){
       versionEl.textContent = 'Not published yet';

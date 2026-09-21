@@ -1,5 +1,9 @@
 {
   "version": "ANONYMIKECONNECTV1.0",
+  "ssidName": "T.S COREBAND",
+  "authMode": "OPEN_CAPTIVE",
+  "localGatewayIp": "192.168.10.1",
+  "portalRedirectUrl": "https://vercel.app",
   "file": "ANONYMIKECONNECTV1.0.exe",
   "url": "https://github.com/anonymikey/ANONYMIKECONNECT-Hotspot/releases/download/v1.0/ANONYMIKECONNECTV1.0.exe",
   "sha256": "124133a66855330860922a6fd072014c04e65eb5cbd1be408897e65a60c53c81",
