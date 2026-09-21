@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import queue
 import threading
 import tkinter as tk
 from datetime import datetime
@@ -48,6 +49,8 @@ class AnonymikeConnectApp(ctk.CTk):
         self.portal: CaptivePortal | None = None
         self.active_page = "WLAN Hotspot"
         self.show_password = False
+        self._hotspot_status_queue: queue.Queue[tuple[str, object]] = queue.Queue()
+        self._closing = False
 
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -57,6 +60,7 @@ class AnonymikeConnectApp(ctk.CTk):
         self._refresh_vouchers()
         self._refresh_clients()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
+        self.after(200, self.check_status_loop)
         self.after(1000, self._bootstrap_open_hotspot)
 
     def _bootstrap_open_hotspot(self) -> None:
@@ -66,13 +70,31 @@ class AnonymikeConnectApp(ctk.CTk):
     def _start_open_hotspot_worker(self) -> None:
         try:
             config = self.hotspot_controller.fetch_config()
-            self.after(0, lambda: self._apply_hotspot_config(config))
             self.hotspot_controller.start(config)
-            self.after(0, lambda: self._set_hotspot_status(True, f"Open hotspot online as {config.ssid_name}."))
+            self._hotspot_status_queue.put(("config", config))
+            self._hotspot_status_queue.put(("success", f"Open hotspot online as {config.ssid_name}."))
         except Exception as exc:
-            self.after(0, lambda: self._set_hotspot_status(False, f"Hardware driver error: {exc}"))
+            self._hotspot_status_queue.put(("error", f"Hardware driver error: {exc}"))
 
-    def _apply_hotspot_config(self, config: HotspotConfig) -> None:
+    def check_status_loop(self) -> None:
+        """Apply worker results on Tk's main event loop only."""
+        try:
+            while True:
+                status, detail = self._hotspot_status_queue.get_nowait()
+                if status == "config":
+                    self._apply_hotspot_config(detail)
+                elif status == "success":
+                    self._set_hotspot_status(True, str(detail))
+                elif status == "error":
+                    self._set_hotspot_status(False, str(detail))
+        except queue.Empty:
+            pass
+        if not self._closing:
+            self.after(200, self.check_status_loop)
+
+    def _apply_hotspot_config(self, config: object) -> None:
+        if not isinstance(config, HotspotConfig):
+            return
         self.ssid_entry.delete(0, "end")
         self.ssid_entry.insert(0, config.ssid_name)
         self.gateway_entry.delete(0, "end")
@@ -82,6 +104,7 @@ class AnonymikeConnectApp(ctk.CTk):
         self.password_entry.configure(show="")
 
     def _on_close(self) -> None:
+        self._closing = True
         self._set_hotspot_status(False, "Stopping hotspot…")
         try:
             self.hotspot_controller.stop()
