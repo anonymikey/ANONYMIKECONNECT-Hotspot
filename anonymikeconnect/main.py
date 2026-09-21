@@ -15,6 +15,7 @@ import qrcode
 from PIL import Image
 
 from .database import VoucherStore
+from .hotspot import HotspotConfig, HotspotController
 from .network import Adapter, NetworkManager
 from .portal import CaptivePortal
 
@@ -42,6 +43,7 @@ class AnonymikeConnectApp(ctk.CTk):
 
         self.store = VoucherStore()
         self.network = NetworkManager()
+        self.hotspot_controller = HotspotController()
         self.adapters: list[Adapter] = []
         self.portal: CaptivePortal | None = None
         self.active_page = "WLAN Hotspot"
@@ -54,6 +56,38 @@ class AnonymikeConnectApp(ctk.CTk):
         self._load_adapters()
         self._refresh_vouchers()
         self._refresh_clients()
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
+        self.after(1000, self._bootstrap_open_hotspot)
+
+    def _bootstrap_open_hotspot(self) -> None:
+        self._set_hotspot_status(False, "Loading release metadata…")
+        threading.Thread(target=self._start_open_hotspot_worker, daemon=True).start()
+
+    def _start_open_hotspot_worker(self) -> None:
+        try:
+            config = self.hotspot_controller.fetch_config()
+            self.after(0, lambda: self._apply_hotspot_config(config))
+            self.hotspot_controller.start(config)
+            self.after(0, lambda: self._set_hotspot_status(True, f"Open hotspot online as {config.ssid_name}."))
+        except Exception as exc:
+            self.after(0, lambda: self._set_hotspot_status(False, f"Hardware driver error: {exc}"))
+
+    def _apply_hotspot_config(self, config: HotspotConfig) -> None:
+        self.ssid_entry.delete(0, "end")
+        self.ssid_entry.insert(0, config.ssid_name)
+        self.gateway_entry.delete(0, "end")
+        self.gateway_entry.insert(0, config.local_gateway_ip)
+        self.password_entry.delete(0, "end")
+        self.password_entry.insert(0, "")
+        self.password_entry.configure(show="")
+
+    def _on_close(self) -> None:
+        self._set_hotspot_status(False, "Stopping hotspot…")
+        try:
+            self.hotspot_controller.stop()
+        except Exception:
+            pass
+        self.destroy()
 
     def _load_brand_image(self) -> ctk.CTkImage | None:
         try:
