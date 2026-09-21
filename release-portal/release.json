@@ -1,9 +1,9 @@
 {
-  "version": "ANONYMIKECONNECTV1.0",
-  "file": "ANONYMIKECONNECTV1.0.exe",
-  "url": "https://github.com/anonymikey/ANONYMIKECONNECT-Hotspot/releases/download/v1.0/ANONYMIKECONNECTV1.0.exe",
-  "sha256": "7a8adf0bc9b1ce3f5068a2375ca171696100dfd3c76fe490746387816ca6cfd0",
-  "size": 23287270,
-  "notes": "Windows build published by CI (ANONYMIKECONNECTV1.0).",
-  "publishedAt": "2026-09-21T18:22:20.8644459Z"
+  "version": "ANONYMIKECONNECTV1.0.1",
+  "file": "ANONYMIKECONNECTV1.0.1.exe",
+  "url": "https://github.com/anonymikey/ANONYMIKECONNECT-Hotspot/releases/download/v1.0.1/ANONYMIKECONNECTV1.0.1.exe",
+  "sha256": "23b93d4a1bda016d1ed196fa482e5b240267822a096a88b29a63a81ba84c1374",
+  "size": 23287264,
+  "notes": "Windows build published by CI (ANONYMIKECONNECTV1.0.1).",
+  "publishedAt": "2026-09-21T18:31:03.8877676Z"
 }
